@@ -2,126 +2,118 @@
 
 {% block title %}Inicio - {{ super() }}{% endblock %}
 
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/home.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-lg-8 mx-auto text-center">
-        <!-- Hero Section -->
-        <div class="jumbotron bg-primary text-white rounded p-5 mb-5">
-            <i class="bi bi-mortarboard-fill display-1 mb-3"></i>
-            <h1 class="display-4 fw-bold">{{ APP_NAME }}</h1>
-            <p class="lead">Sistema integral de gestión educativa para instituciones modernas</p>
-            <hr class="my-4">
-            <p>Administra estudiantes, docentes, cursos, calificaciones y reportes de manera eficiente</p>
-            <div class="mt-4">
-                <a class="btn btn-light btn-lg" href="{{ url_for('auth.login') }}" role="button">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
-                </a>
-            </div>
+<!-- Hero Section ultra moderno -->
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">{{ APP_NAME }}</h1>
+        <p class="hero-subtitle">
+            La plataforma educativa del futuro. Gestiona estudiantes, docentes, cursos y calificaciones 
+            con tecnología de vanguardia, diseño intuitivo y eficiencia absoluta.
+        </p>
+        
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('main.dashboard') }}" class="hero-button">
+            <i class="fas fa-rocket"></i>
+            Ir al Dashboard
+        </a>
+        {% else %}
+        <a href="{{ url_for('auth.login') }}" class="hero-button">
+            <i class="fas fa-sign-in-alt"></i>
+            Iniciar Sesión
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Sección Características modernas -->
+<div class="features-section">
+    <h2 class="section-title">
+        <i class="fas fa-star me-2"></i>
+        Características Principales
+    </h2>
+    
+    <div class="features-grid">
+        <div class="feature-card">
+            <i class="fas fa-book-open feature-icon"></i>
+            <h3 class="feature-title">Gestión de Cursos</h3>
+            <p class="feature-description">
+                Organiza y administra cursos con herramientas intuitivas y potentes para una gestión eficiente.
+            </p>
+        </div>
+        
+        <div class="feature-card">
+            <i class="fas fa-user-graduate feature-icon"></i>
+            <h3 class="feature-title">Control de Estudiantes</h3>
+            <p class="feature-description">
+                Seguimiento completo del progreso académico de cada estudiante en tiempo real.
+            </p>
+        </div>
+        
+        <div class="feature-card">
+            <i class="fas fa-clipboard-list feature-icon"></i>
+            <h3 class="feature-title">Sistema de Calificaciones</h3>
+            <p class="feature-description">
+                Registro y gestión avanzada de evaluaciones con cálculos automáticos de promedios.
+            </p>
+        </div>
+        
+        <div class="feature-card">
+            <i class="fas fa-chart-line feature-icon"></i>
+            <h3 class="feature-title">Reportes Inteligentes</h3>
+            <p class="feature-description">
+                Análisis detallados y estadísticas para tomar decisiones académicas inteligentes.
+            </p>
         </div>
 
-        <!-- Características -->
-        <div class="row g-4 mb-5">
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-people-fill text-primary display-6 mb-3"></i>
-                        <h5 class="card-title">Gestión de Usuarios</h5>
-                        <p class="card-text">Administra estudiantes, docentes y personal administrativo con roles específicos</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-journal-text text-success display-6 mb-3"></i>
-                        <h5 class="card-title">Calificaciones</h5>
-                        <p class="card-text">Registra y consulta notas por períodos, genera boletines automáticos</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <i class="bi bi-graph-up text-info display-6 mb-3"></i>
-                        <h5 class="card-title">Reportes</h5>
-                        <p class="card-text">Genera reportes detallados y estadísticas del rendimiento académico</p>
-                    </div>
-                </div>
-            </div>
+        <div class="feature-card">
+            <i class="fas fa-bolt feature-icon"></i>
+            <h3 class="feature-title">Eficiencia Total</h3>
+            <p class="feature-description">
+                Automatización completa de procesos administrativos para ahorrar tiempo valioso.
+            </p>
         </div>
 
-        <!-- Flujo de trabajo -->
-        <div class="row g-4">
-            <div class="col-12">
-                <h3 class="mb-4">Flujo de Trabajo del Sistema</h3>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center h-100 border-danger">
-                    <div class="card-header bg-danger text-white">
-                        <h6 class="mb-0">
-                            <i class="bi bi-shield-check me-2"></i>
-                            1. Super Administrador
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text small">
-                            • Crea y gestiona instituciones<br>
-                            • Asigna administradores institucionales<br>
-                            • Control total del sistema
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center h-100 border-warning">
-                    <div class="card-header bg-warning text-dark">
-                        <h6 class="mb-0">
-                            <i class="bi bi-gear me-2"></i>
-                            2. Admin Institucional
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text small">
-                            • Gestiona usuarios de su institución<br>
-                            • Configura cursos y asignaturas<br>
-                            • Genera reportes institucionales
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center h-100 border-primary">
-                    <div class="card-header bg-primary text-white">
-                        <h6 class="mb-0">
-                            <i class="bi bi-people me-2"></i>
-                            3. Docentes y Estudiantes
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text small">
-                            • Docentes registran calificaciones<br>
-                            • Estudiantes consultan sus notas<br>
-                            • Padres pueden ver el progreso
-                        </p>
-                    </div>
-                </div>
-            </div>
+        <div class="feature-card">
+            <i class="fas fa-shield-alt feature-icon"></i>
+            <h3 class="feature-title">Máxima Seguridad</h3>
+            <p class="feature-description">
+                Protección avanzada de datos con encriptación y control de acceso por roles.
+            </p>
         </div>
 
-        <!-- Información de contacto -->
-        <div class="card mt-5 border-info">
-            <div class="card-header bg-info text-white text-center">
-                <h6 class="mb-0">
-                    <i class="bi bi-info-circle me-2"></i>
-                    ¿Necesitas acceso al sistema?
-                </h6>
-            </div>
-            <div class="card-body text-center">
-                <p class="mb-0">
-                    Contacta al administrador de tu institución educativa para obtener tus credenciales de acceso.
-                </p>
-            </div>
+        <div class="feature-card">
+            <i class="fas fa-cloud feature-icon"></i>
+            <h3 class="feature-title">En la Nube</h3>
+            <p class="feature-description">
+                Acceso instantáneo desde cualquier lugar y dispositivo, disponible 24/7.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <i class="fas fa-mobile-alt feature-icon"></i>
+            <h3 class="feature-title">Multiplataforma</h3>
+            <p class="feature-description">
+                Experiencia optimizada en computadoras, tablets y smartphones.
+            </p>
         </div>
     </div>
 </div>
+
+<!-- Footer minimalista y elegante -->
+<footer class="footer-section">
+    <div class="footer-logo-section">
+        <div class="footer-logo-icon">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        {{ APP_NAME }}
+    </div>
+    <div class="footer-copyright">
+        <p>&copy; 2025 {{ APP_NAME }}. Todos los derechos reservados. Sistema de Gestión Educativa.</p>
+    </div>
+</footer>
 {% endblock %}
