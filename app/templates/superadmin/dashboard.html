@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - {{ super() }}{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
+{% block title %}Dashboard Superadmin - {{ super() }}{% endblock %}
+{% block page_title %}Dashboard Superadmin{% endblock %}
 
 {% block extra_css %}
 <style>
+    /* Dashboard específico para superadmin */
     .stats-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 16px;
@@ -13,6 +14,9 @@
         position: relative;
         overflow: hidden;
         transition: all 0.3s ease;
+        border: none;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        cursor: pointer;
     }
 
     .stats-card::before {
@@ -29,6 +33,11 @@
     @keyframes pulse {
         0% { transform: scale(1) rotate(0deg); }
         100% { transform: scale(1.1) rotate(10deg); }
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
     }
 
     .stats-card.institutions {
@@ -51,15 +60,8 @@
         background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
     }
 
-    .stats-card.parents {
+    .stats-card.courses {
         background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    }
-
-    .role-badge {
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
     }
 
     .stats-icon {
@@ -80,13 +82,18 @@
         font-weight: 500;
     }
 
-    .chart-container {
-        position: relative;
-        height: 400px;
-        background: white;
-        border-radius: 16px;
-        padding: 2rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    .stats-change {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-top: 0.5rem;
+    }
+
+    .stats-change.positive {
+        color: #10b981;
+    }
+
+    .stats-change.negative {
+        color: #ef4444;
     }
 
     .welcome-banner {
@@ -97,6 +104,7 @@
         margin-bottom: 2rem;
         position: relative;
         overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
 
     .welcome-banner::before {
@@ -110,19 +118,120 @@
         opacity: 0.6;
     }
 
-    @media (max-width: 768px) {
-        .stats-card {
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        
-        .chart-container {
-            height: 300px;
-            padding: 1rem;
-        }
+    .chart-container {
+        position: relative;
+        height: 400px;
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .activity-item {
+        padding: 1rem;
+        border-left: 3px solid #8E2DE2;
+        margin-bottom: 1rem;
+        background: rgba(142, 45, 226, 0.05);
+        border-radius: 0 8px 8px 0;
+        transition: all 0.3s ease;
+    }
+
+    .activity-item:hover {
+        background: rgba(142, 45, 226, 0.1);
+        transform: translateX(5px);
+    }
+
+    .activity-time {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .activity-description {
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+
+    .quick-action-btn {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-decoration: none;
+        color: #374151;
+        transition: all 0.3s ease;
+        display: block;
+        text-align: center;
+    }
+
+    .quick-action-btn:hover {
+        border-color: #8E2DE2;
+        background: rgba(142, 45, 226, 0.05);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        text-decoration: none;
+        color: #8E2DE2;
+    }
+
+    .quick-action-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #8E2DE2;
+    }
+
+    .quick-action-label {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .system-status {
+        background: #10b981;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .system-status.warning {
+        background: #f59e0b;
+    }
+
+    .system-status.error {
+        background: #ef4444;
     }
 </style>
+
+<!-- Chart.js para gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
+
+<!-- Pasar datos del servidor a JavaScript de forma segura -->
+<script id="dashboard-data" type="application/json">
+{
+    "chartData": {
+        "institutionNames": {% if chart_data and chart_data.institution_names %}{{ chart_data.institution_names | tojson }}{% else %}[]{% endif %},
+        "studentsData": {% if chart_data and chart_data.students_per_institution %}{{ chart_data.students_per_institution | tojson }}{% else %}[]{% endif %},
+        "teachersData": {% if chart_data and chart_data.teachers_per_institution %}{{ chart_data.teachers_per_institution | tojson }}{% else %}[]{% endif %}
+    },
+    "stats": {
+        "totalInstitutions": {% if stats %}{{ stats.total_institutions or 0 }}{% else %}0{% endif %},
+        "totalUsers": {% if stats %}{{ stats.total_users or 0 }}{% else %}0{% endif %},
+        "totalAdmins": {% if stats %}{{ stats.total_admins or 0 }}{% else %}0{% endif %},
+        "totalTeachers": {% if stats %}{{ stats.total_teachers or 0 }}{% else %}0{% endif %},
+        "totalStudents": {% if stats %}{{ stats.total_students or 0 }}{% else %}0{% endif %},
+        "totalCourses": {% if stats %}{{ stats.total_courses or 0 }}{% else %}0{% endif %}
+    }
+}
+</script>
 
 {% block content %}
 <!-- Welcome Banner -->
@@ -130,431 +239,338 @@
     <div class="row align-items-center">
         <div class="col-md-8">
             <h1 class="mb-2">
-                ¡Bienvenido, {{ current_user.full_name.split(' ')[0] if current_user.full_name else current_user.email.split('@')[0] }}! 👋
+                ¡Bienvenido, {% if current_user.full_name %}{{ current_user.full_name.split(' ')[0] }}{% else %}Superadmin{% endif %}! 👑
             </h1>
             <p class="mb-2 fs-5">
-                {% if current_user.role == 'superadmin' %}
-                    Panel de control principal para la gestión global del sistema EduControl
-                {% elif current_user.role == 'admin' %}
-                    Panel de administración institucional
-                {% elif current_user.role == 'teacher' %}
-                    Panel de control para gestión de clases y estudiantes
-                {% elif current_user.role == 'student' %}
-                    Tu portal estudiantil personalizado
-                {% else %}
-                    Bienvenido al sistema EduControl
-                {% endif %}
+                Panel de control maestro del sistema EduControl. Tienes acceso completo a todas las funcionalidades.
             </p>
-            <div class="d-flex align-items-center gap-2">
-                <i class="fas fa-{{ 'crown' if current_user.role == 'superadmin' else 'cog' if current_user.role == 'admin' else 'chalkboard-teacher' if current_user.role == 'teacher' else 'graduation-cap' if current_user.role == 'student' else 'users' }}"></i>
-                {{ current_user.role.replace('_', ' ').title() }}
+            <div class="d-flex align-items-center gap-3">
+                <div class="system-status">
+                    <i class="fas fa-circle"></i>
+                    Sistema operativo
+                </div>
+                <small>
+                    <i class="fas fa-clock me-1"></i>
+                    Último acceso: {% if current_user.ultimo_acceso %}{{ current_user.ultimo_acceso.strftime('%d/%m/%Y a las %H:%M') }}{% else %}Primera vez{% endif %}
+                </small>
             </div>
         </div>
         <div class="col-md-4 text-end">
-            <!-- Botones específicos por rol -->
+            <div class="d-flex flex-column gap-2">
+                <span class="badge bg-light text-dark fs-6">
+                    <i class="fas fa-crown me-1"></i>
+                    Super Administrador
+                </span>
+                <small class="opacity-75">
+                    Acceso total al sistema
+                </small>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Contenido específico por rol -->
-{% if current_user.role == 'superadmin' %}
-    <!-- CONTENIDO SUPERADMIN -->
-    <div class="row g-4 mb-5">
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stats-card institutions">
-                <div class="stats-icon">
-                    <i class="fas fa-building"></i>
-                </div>
-                <div class="stats-number">12</div>
-                <div class="stats-label">Instituciones</div>
+<!-- Estadísticas Principales -->
+<div class="row g-4 mb-5">
+    <div class="col-lg-2 col-md-4 col-sm-6">
+        <div class="stats-card institutions" onclick="location.href='#'">
+            <div class="stats-icon">
+                <i class="fas fa-building"></i>
             </div>
-        </div>
-        
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stats-card users">
-                <div class="stats-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stats-number">1,247</div>
-                <div class="stats-label">Total Usuarios</div>
-            </div>
-        </div>
-        
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stats-card admins">
-                <div class="stats-icon">
-                    <i class="fas fa-user-shield"></i>
-                </div>
-                <div class="stats-number">24</div>
-                <div class="stats-label">Administradores</div>
-            </div>
-        </div>
-        
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stats-card teachers">
-                <div class="stats-icon">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                </div>
-                <div class="stats-number">156</div>
-                <div class="stats-label">Profesores</div>
-            </div>
-        </div>
-        
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stats-card students">
-                <div class="stats-icon">
-                    <i class="fas fa-user-graduate"></i>
-                </div>
-                <div class="stats-number">985</div>
-                <div class="stats-label">Estudiantes</div>
-            </div>
-        </div>
-        
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stats-card parents">
-                <div class="stats-icon">
-                    <i class="fas fa-heart"></i>
-                </div>
-                <div class="stats-number">682</div>
-                <div class="stats-label">Padres</div>
+            <div class="stats-number" data-target="{% if stats %}{{ stats.total_institutions or 0 }}{% else %}0{% endif %}">0</div>
+            <div class="stats-label">Instituciones</div>
+            <div class="stats-change positive">
+                <i class="fas fa-arrow-up me-1"></i>
+                +{% if stats %}{{ stats.new_institutions_this_month or 0 }}{% else %}0{% endif %} este mes
             </div>
         </div>
     </div>
-
-{% elif current_user.role == 'admin' %}
-    <!-- CONTENIDO ADMIN INSTITUCIONAL -->
-    <div class="row g-4 mb-4">
-        <div class="col-lg-3 col-md-6">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4>{{ 34 }}</h4>
-                            <p class="card-text">Estudiantes</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-user-graduate fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
+    
+    <div class="col-lg-2 col-md-4 col-sm-6">
+        <div class="stats-card users" onclick="location.href='#'">
+            <div class="stats-icon">
+                <i class="fas fa-users"></i>
             </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4>{{ 8 }}</h4>
-                            <p class="card-text">Profesores</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-chalkboard-teacher fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4>{{ 6 }}</h4>
-                            <p class="card-text">Materias</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-book fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h4>{{ 96 }}%</h4>
-                            <p class="card-text">Asistencia</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-chart-line fa-2x"></i>
-                        </div>
-                    </div>
-                </div>
+            <div class="stats-number" data-target="{% if stats %}{{ stats.total_users or 0 }}{% else %}0{% endif %}">0</div>
+            <div class="stats-label">Total Usuarios</div>
+            <div class="stats-change positive">
+                <i class="fas fa-arrow-up me-1"></i>
+                +{% if stats %}{{ stats.new_users_this_week or 0 }}{% else %}0{% endif %} esta semana
             </div>
         </div>
     </div>
+    
+    <div class="col-lg-2 col-md-4 col-sm-6">
+        <div class="stats-card admins" onclick="location.href='#'">
+            <div class="stats-icon">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div class="stats-number" data-target="{% if stats %}{{ stats.total_admins or 0 }}{% else %}0{% endif %}">0</div>
+            <div class="stats-label">Administradores</div>
+            <div class="stats-change">
+                <i class="fas fa-check me-1"></i>
+                {% if stats %}{{ stats.active_admins or 0 }}{% else %}0{% endif %} activos
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-2 col-md-4 col-sm-6">
+        <div class="stats-card teachers" onclick="location.href='#'">
+            <div class="stats-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div class="stats-number" data-target="{% if stats %}{{ stats.total_teachers or 0 }}{% else %}0{% endif %}">0</div>
+            <div class="stats-label">Profesores</div>
+            <div class="stats-change positive">
+                <i class="fas fa-arrow-up me-1"></i>
+                +{% if stats %}{{ stats.new_teachers_this_month or 0 }}{% else %}0{% endif %} este mes
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-2 col-md-4 col-sm-6">
+        <div class="stats-card students" onclick="location.href='#'">
+            <div class="stats-icon">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stats-number" data-target="{% if stats %}{{ stats.total_students or 0 }}{% else %}0{% endif %}">0</div>
+            <div class="stats-label">Estudiantes</div>
+            <div class="stats-change positive">
+                <i class="fas fa-arrow-up me-1"></i>
+                +{% if stats %}{{ stats.new_students_this_month or 0 }}{% else %}0{% endif %} este mes
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-2 col-md-4 col-sm-6">
+        <div class="stats-card courses" onclick="location.href='#'">
+            <div class="stats-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="stats-number" data-target="{% if stats %}{{ stats.total_courses or 0 }}{% else %}0{% endif %}">0</div>
+            <div class="stats-label">Cursos Totales</div>
+            <div class="stats-change">
+                <i class="fas fa-chart-line me-1"></i>
+                {% if stats %}{{ stats.active_courses or 0 }}{% else %}0{% endif %} activos
+            </div>
+        </div>
+    </div>
+</div>
 
-{% elif current_user.role == 'teacher' %}
-    <!-- CONTENIDO PROFESOR -->
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-calendar-alt me-2"></i>Mis Clases de Hoy</h5>
+<!-- Contenido Principal en Dos Columnas -->
+<div class="row">
+    <!-- Columna Principal - Gráficos y Análisis -->
+    <div class="col-lg-8 mb-4">
+        <!-- Gráfico de Instituciones -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar me-2"></i>Distribución de Usuarios por Institución</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="institutionsChart"></canvas>
                 </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1">Matemáticas - Grado 10A</h6>
-                                <p class="mb-1">8:00 AM - 9:30 AM</p>
-                                <small>Aula 201</small>
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt me-2"></i>Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <a href="#" class="quick-action-btn">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-plus-circle"></i>
                             </div>
-                            <span class="badge bg-primary rounded-pill">En curso</span>
-                        </div>
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1">Álgebra - Grado 11B</h6>
-                                <p class="mb-1">10:00 AM - 11:30 AM</p>
-                                <small>Aula 203</small>
-                            </div>
-                            <span class="badge bg-secondary rounded-pill">Próxima</span>
-                        </div>
+                            <div class="quick-action-label">Nueva Institución</div>
+                        </a>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-tasks me-2"></i>Actividades Pendientes</h5>
-                </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        <div class="list-group-item px-0">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">Calificar exámenes</h6>
-                                <small>2 días</small>
+                    <div class="col-md-3 mb-3">
+                        <a href="#" class="quick-action-btn">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-building"></i>
                             </div>
-                            <p class="mb-1">Grado 10A - Examen de álgebra</p>
-                        </div>
-                        <div class="list-group-item px-0">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">Preparar clase</h6>
-                                <small>Mañana</small>
-                            </div>
-                            <p class="mb-1">Tema: Ecuaciones cuadráticas</p>
-                        </div>
+                            <div class="quick-action-label">Gestionar Instituciones</div>
+                        </a>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-{% else %}
-    <!-- CONTENIDO GENÉRICO (estudiante, padre, etc.) -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
-                    <h4>Bienvenido a EduControl</h4>
-                    <p class="text-muted">Tu portal educativo está configurándose. Pronto tendrás acceso a todas las funcionalidades.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-{% endif %}
-
-<!-- Sección de actividad reciente (común para todos) -->
-{% if current_user.role == 'superadmin' %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-history me-2"></i>Actividad Reciente del Sistema</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>Estadísticas Globales</h6>
-                            <ul class="list-unstyled">
-                                <li><i class="fas fa-building text-primary me-2"></i>247 instituciones activas</li>
-                                <li><i class="fas fa-users text-success me-2"></i>68% de crecimiento este año</li>
-                                <li><i class="fas fa-chart-line text-info me-2"></i>8 nuevos registros hoy</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>Últimas Acciones</h6>
-                            <div class="timeline">
-                                <div class="timeline-item">
-                                    <div class="timeline-marker bg-success"></div>
-                                    <div class="timeline-content">
-                                        <h6 class="mb-1">Nueva institución registrada</h6>
-                                        <p class="mb-0 text-muted">Colegio San José - Hace 2 horas</p>
-                                    </div>
-                                </div>
-                                <div class="timeline-item">
-                                    <div class="timeline-marker bg-info"></div>
-                                    <div class="timeline-content">
-                                        <h6 class="mb-1">Calificaciones registradas</h6>
-                                        <p class="mb-0 text-muted">Notas del primer período actualizadas</p>
-                                    </div>
-                                </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="#" class="quick-action-btn">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-users-cog"></i>
                             </div>
-                        </div>
+                            <div class="quick-action-label">Gestionar Usuarios</div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="#" class="quick-action-btn">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="quick-action-label">Reportes Globales</div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="#" class="quick-action-btn">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="quick-action-label">Configuración Sistema</div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="#" class="quick-action-btn">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="quick-action-label">Backup & Restore</div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="#" class="quick-action-btn">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <div class="quick-action-label">Logs de Auditoría</div>
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="#" class="quick-action-btn">
+                            <div class="quick-action-icon">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                            <div class="quick-action-label">Estado del Sistema</div>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-{% elif current_user.role == 'admin' %}
-    <div class="row mt-4">
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-chart-bar me-2"></i>Estadísticas de la Institución</h5>
+    
+    <!-- Columna Lateral - Actividad y Estado -->
+    <div class="col-lg-4">
+        <!-- Estado del Sistema -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-server me-2"></i>Estado del Sistema</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>Estado del Servidor</span>
+                    <span class="system-status">
+                        <i class="fas fa-circle"></i>
+                        Operativo
+                    </span>
                 </div>
-                <div class="card-body">
-                    <p><strong>Total Usuarios:</strong> 247</p>
-                    <p><strong>Asistencia Promedio:</strong> 23%</p>
-                    <p><strong>Cursos Activos:</strong> 5</p>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>Base de Datos</span>
+                    <span class="system-status">
+                        <i class="fas fa-circle"></i>
+                        Conectada
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>Último Backup</span>
+                    <span class="text-muted">{% if system_info %}{{ system_info.last_backup or 'Hace 2 horas' }}{% else %}Hace 2 horas{% endif %}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>Versión del Sistema</span>
+                    <span class="badge bg-primary">{% if system_info %}{{ system_info.version or 'v1.0.0' }}{% else %}v1.0.0{% endif %}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>Usuarios Conectados</span>
+                    <span class="fw-bold text-success">{% if system_info %}{{ system_info.connected_users or 24 }}{% else %}24{% endif %}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Uso de Almacenamiento</span>
+                    <span class="text-muted">{% if system_info %}{{ system_info.storage_usage or '68%' }}{% else %}68%{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actividad Reciente -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-history me-2"></i>Actividad Reciente</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_activities %}
+                    {% for activity in recent_activities %}
+                    <div class="activity-item">
+                        <div class="activity-time">{{ activity.time }}</div>
+                        <div class="activity-title">{{ activity.title }}</div>
+                        <div class="activity-description">{{ activity.description }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Actividades de ejemplo si no hay datos -->
+                    <div class="activity-item">
+                        <div class="activity-time">Hace 15 minutos</div>
+                        <div class="activity-title">Nueva institución registrada</div>
+                        <div class="activity-description">Colegio Santa María se unió al sistema</div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-time">Hace 1 hora</div>
+                        <div class="activity-title">Usuario administrador creado</div>
+                        <div class="activity-description">Juan Pérez - Instituto Técnico Norte</div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-time">Hace 2 horas</div>
+                        <div class="activity-title">Backup automático completado</div>
+                        <div class="activity-description">Respaldo de base de datos exitoso</div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-time">Hace 3 horas</div>
+                        <div class="activity-title">Actualización del sistema</div>
+                        <div class="activity-description">Versión 1.0.1 desplegada exitosamente</div>
+                    </div>
+                {% endif %}
+                
+                <div class="text-center mt-3">
+                    <a href="#" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-list me-1"></i>
+                        Ver todo el log
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-{% elif current_user.role == 'student' %}
-    <div class="row mt-4">
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-calendar me-2"></i>Horario de Hoy</h5>
-                </div>
-                <div class="card-body">
-                    <p>Próxima clase en 2 horas</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-chart-line me-2"></i>Mis Calificaciones</h5>
-                </div>
-                <div class="card-body">
-                    <p>Promedio general: 4.2/5.0</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-{% elif current_user.role == 'teacher' %}
-    <div class="row mt-4">
-        <div class="col-lg-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5><i class="fas fa-users me-2"></i>Mis Estudiantes</h5>
-                </div>
-                <div class="card-body">
-                    <p>Total estudiantes: 3</p>
-                </div>
-            </div>
-        </div>
-    </div>
-{% endif %}
-
-<!-- Accesos Rápidos -->
+<!-- Sección de Reportes Rápidos -->
 <div class="row mt-4">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5><i class="fas fa-bolt me-2"></i>Accesos Rápidos</h5>
+                <h5><i class="fas fa-download me-2"></i>Reportes y Exportaciones</h5>
             </div>
             <div class="card-body">
-                <div class="row text-center">
-                    {% if current_user.role == 'superadmin' %}
-                        <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-outline-primary d-block">
-                                <i class="fas fa-building fa-2x mb-2"></i><br>
-                                Gestionar Instituciones
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-outline-success d-block">
-                                <i class="fas fa-users fa-2x mb-2"></i><br>
-                                Ver Usuarios
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-outline-info d-block">
-                                <i class="fas fa-chart-bar fa-2x mb-2"></i><br>
-                                Reportes
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="#" class="btn btn-outline-warning d-block">
-                                <i class="fas fa-cog fa-2x mb-2"></i><br>
-                                Configuración
-                            </a>
-                        </div>
-
-                    {% elif current_user.role == 'admin' %}
-                        <div class="col-md-4 mb-3">
-                            <a href="#" class="btn btn-outline-primary d-block">
-                                <i class="fas fa-user-graduate fa-2x mb-2"></i><br>
-                                Gestionar Estudiantes
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="#" class="btn btn-outline-success d-block">
-                                <i class="fas fa-chalkboard-teacher fa-2x mb-2"></i><br>
-                                Gestionar Profesores
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="#" class="btn btn-outline-info d-block">
-                                <i class="fas fa-book fa-2x mb-2"></i><br>
-                                Gestionar Cursos
-                            </a>
-                        </div>
-
-                    {% elif current_user.role == 'teacher' %}
-                        <div class="col-md-4 mb-3">
-                            <a href="#" class="btn btn-outline-primary d-block">
-                                <i class="fas fa-book fa-2x mb-2"></i><br>
-                                Mis Cursos
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="#" class="btn btn-outline-success d-block">
-                                <i class="fas fa-users fa-2x mb-2"></i><br>
-                                Mis Estudiantes
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="#" class="btn btn-outline-info d-block">
-                                <i class="fas fa-chart-line fa-2x mb-2"></i><br>
-                                Calificaciones
-                            </a>
-                        </div>
-
-                    {% elif current_user.role == 'student' %}
-                        <div class="col-md-6 mb-3">
-                            <a href="#" class="btn btn-outline-primary d-block">
-                                <i class="fas fa-book fa-2x mb-2"></i><br>
-                                Ver Materias
-                            </a>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <a href="#" class="btn btn-outline-success d-block">
-                                <i class="fas fa-chart-line fa-2x mb-2"></i><br>
-                                Ver Calificaciones
-                            </a>
-                        </div>
-
-                    {% else %}
-                        <div class="col-12">
-                            <p class="text-muted">Accesos rápidos se configurarán según tu rol.</p>
-                        </div>
-                    {% endif %}
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-outline-success w-100" onclick="downloadReport('institutions')">
+                            <i class="fas fa-file-excel me-2"></i>
+                            Reporte de Instituciones
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-outline-info w-100" onclick="downloadReport('users')">
+                            <i class="fas fa-file-csv me-2"></i>
+                            Reporte de Usuarios
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-outline-warning w-100" onclick="downloadReport('activity')">
+                            <i class="fas fa-file-pdf me-2"></i>
+                            Log de Actividades
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-outline-danger w-100" onclick="downloadReport('full')">
+                            <i class="fas fa-file-archive me-2"></i>
+                            Reporte Completo
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -563,39 +579,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-// JavaScript para animaciones y funcionalidades adicionales
-document.addEventListener('DOMContentLoaded', function() {
-    // Animación de números en las tarjetas
-    function animateNumbers() {
-        const statNumbers = document.querySelectorAll('.stats-number');
-        
-        statNumbers.forEach(number => {
-            const finalValue = parseInt(number.textContent);
-            const duration = 2000;
-            const startTime = Date.now();
-            
-            function updateNumber() {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const currentValue = Math.round(finalValue * progress);
-                
-                number.textContent = currentValue;
-                
-                if (progress < 1) {
-                    requestAnimationFrame(updateNumber);
-                }
-            }
-            
-            if (finalValue > 0) {
-                number.textContent = '0';
-                requestAnimationFrame(updateNumber);
-            }
-        });
-    }
-
-    // Ejecutar animación después de un breve delay
-    setTimeout(animateNumbers, 500);
-});
-</script>
+<script src="{{ url_for('static', filename='js/dashboard-superadmin.js') }}"></script>
 {% endblock %}

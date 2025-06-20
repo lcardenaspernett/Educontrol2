@@ -22,7 +22,12 @@ login_manager.login_message_category = 'info'
 
 def create_app(config_name='default'):
     """Factory para crear la aplicación Flask"""
-    app = Flask(__name__)
+    # AQUÍ ESTÁ LA CORRECCIÓN - Especificar rutas de archivos estáticos
+    app = Flask(__name__, 
+                static_folder='static',           # Carpeta de archivos estáticos
+                static_url_path='/static',        # URL base para archivos estáticos
+                template_folder='templates')      # Carpeta de templates
+    
     app.config.from_object(config[config_name])
 
     # Inicializar extensiones con la app
@@ -56,5 +61,18 @@ def create_app(config_name='default'):
             'APP_NAME': app.config.get('APP_NAME'),
             'APP_VERSION': app.config.get('APP_VERSION')
         }
+
+    # OPCIONAL: Debug de rutas estáticas en desarrollo
+    if app.debug:
+        @app.route('/debug/static')
+        def debug_static():
+            import os
+            static_path = os.path.join(app.root_path, 'static')
+            files = []
+            for root, dirs, filenames in os.walk(static_path):
+                for filename in filenames:
+                    rel_path = os.path.relpath(os.path.join(root, filename), static_path)
+                    files.append(rel_path)
+            return f"<h3>Archivos estáticos encontrados:</h3><ul>{''.join([f'<li>{f}</li>' for f in files])}</ul>"
 
     return app
