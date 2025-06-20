@@ -1,17 +1,8 @@
-{% extends "base.html" %}
+{% extends "auth_base.html" %}
 
 {% block title %}Iniciar Sesión - {{ super() }}{% endblock %}
 
 {% block body_class %}login-page{% endblock %}
-
-{% block login_logo %}
-<div class="login-logo">
-    <a href="{{ url_for('main.index') }}">
-        <i class="fas fa-graduation-cap"></i>
-        {{ APP_NAME }}
-    </a>
-</div>
-{% endblock %}
 
 {% block content %}
 <style>
@@ -27,18 +18,32 @@
         --transicion: all 0.3s ease;
     }
 
-    .main-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        padding: 2rem;
+    .login-wrapper {
+        width: 100%;
+        max-width: 550px; /* Aumentado de 420px */
         position: relative;
-        overflow: hidden;
-        background: var(--hero-gradient);
+        z-index: 2;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        justify-content: center;
+        padding: 1.5rem; /* Reducido de 2rem */
     }
 
-    .main-container::before {
+    .login-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--hero-gradient);
+        z-index: 1;
+    }
+
+    /* EFECTOS DE CUADRÍCULA ANIMADA */
+    .login-background::before {
         content: '';
         position: absolute;
         top: 0;
@@ -46,34 +51,164 @@
         right: 0;
         bottom: 0;
         background-image: 
-            linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px);
-        background-size: 80px 80px;
-        animation: moveGrid 25s linear infinite;
+            linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+        background-size: 60px 60px;
+        animation: gridMove 20s linear infinite;
+        opacity: 0.6;
+    }
+
+    .login-background::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+                    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+        animation: floatingBubbles 25s ease-in-out infinite;
+    }
+
+    @keyframes gridMove {
+        0% { 
+            transform: translate(0, 0);
+        }
+        100% { 
+            transform: translate(60px, 60px);
+        }
+    }
+
+    @keyframes floatingBubbles {
+        0%, 100% { 
+            transform: translate(0, 0) scale(1);
+            opacity: 0.4;
+        }
+        25% { 
+            transform: translate(15px, -20px) scale(1.2);
+            opacity: 0.6;
+        }
+        50% { 
+            transform: translate(-10px, 15px) scale(0.8);
+            opacity: 0.3;
+        }
+        75% { 
+            transform: translate(20px, 10px) scale(1.1);
+            opacity: 0.7;
+        }
+    }
+
+    /* LÍNEAS BRILLANTES DIAGONALES */
+    .geometric-lines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden;
         z-index: 1;
     }
 
-    @keyframes moveGrid {
-        0% { transform: translate(0, 0); }
-        100% { transform: translate(80px, 80px); }
+    .geometric-lines::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: 
+            linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.1) 1px, transparent 2px),
+            linear-gradient(-45deg, transparent 0%, rgba(255, 255, 255, 0.08) 1px, transparent 2px);
+        background-size: 80px 80px, 120px 120px;
+        animation: diagonalMove 30s linear infinite;
     }
 
-    .login-wrapper {
-        width: 100%;
-        max-width: 420px;
-        position: relative;
-        z-index: 2;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+    .geometric-lines::after {
+        content: '';
+        position: absolute;
+        top: 20%;
+        left: 10%;
+        width: 300px;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        animation: scanLine 8s ease-in-out infinite;
+        transform: rotate(15deg);
+    }
+
+    @keyframes diagonalMove {
+        0% { 
+            transform: translate(0, 0) rotate(0deg);
+        }
+        100% { 
+            transform: translate(80px, 80px) rotate(360deg);
+        }
+    }
+
+    @keyframes scanLine {
+        0%, 100% {
+            transform: rotate(15deg) scaleX(0);
+            opacity: 0;
+        }
+        50% {
+            transform: rotate(15deg) scaleX(1);
+            opacity: 1;
+        }
+    }
+
+    /* PARTÍCULAS FLOTANTES */
+    .floating-particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+    }
+
+    .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        animation: float 15s infinite linear;
+    }
+
+    .particle:nth-child(1) { left: 10%; animation-delay: -2s; animation-duration: 12s; }
+    .particle:nth-child(2) { left: 20%; animation-delay: -4s; animation-duration: 18s; }
+    .particle:nth-child(3) { left: 30%; animation-delay: -6s; animation-duration: 15s; }
+    .particle:nth-child(4) { left: 40%; animation-delay: -8s; animation-duration: 20s; }
+    .particle:nth-child(5) { left: 50%; animation-delay: -10s; animation-duration: 14s; }
+    .particle:nth-child(6) { left: 60%; animation-delay: -12s; animation-duration: 16s; }
+    .particle:nth-child(7) { left: 70%; animation-delay: -14s; animation-duration: 22s; }
+    .particle:nth-child(8) { left: 80%; animation-delay: -16s; animation-duration: 13s; }
+    .particle:nth-child(9) { left: 90%; animation-delay: -18s; animation-duration: 17s; }
+
+    @keyframes float {
+        0% {
+            transform: translateY(100vh) scale(0);
+            opacity: 0;
+        }
+        10% {
+            opacity: 1;
+            transform: translateY(90vh) scale(1);
+        }
+        90% {
+            opacity: 1;
+            transform: translateY(-10vh) scale(1);
+        }
+        100% {
+            transform: translateY(-10vh) scale(0);
+            opacity: 0;
+        }
     }
 
     .login-card {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(20px);
         border-radius: 24px;
-        padding: 3rem 2.5rem;
+        padding: 2.5rem; /* Reducido de 3rem 2.5rem */
         box-shadow: 
             0 20px 40px rgba(0, 0, 0, 0.1),
             0 0 0 1px rgba(255, 255, 255, 0.2);
@@ -81,13 +216,14 @@
         position: relative;
         overflow: hidden;
         width: 100%;
-        animation: cardEntry 1s ease-out;
+        animation: cardEntry 1.2s ease-out;
+        z-index: 10;
     }
 
     @keyframes cardEntry {
         from {
             opacity: 0;
-            transform: translateY(50px) scale(0.9);
+            transform: translateY(40px) scale(0.95); /* Reducido de 60px y 0.9 */
         }
         to {
             opacity: 1;
@@ -112,19 +248,27 @@
         left: -50%;
         width: 200%;
         height: 200%;
-        background: radial-gradient(circle, rgba(142, 45, 226, 0.03) 0%, transparent 70%);
-        animation: wave 8s ease-in-out infinite;
+        background: 
+            radial-gradient(circle, rgba(142, 45, 226, 0.05) 0%, transparent 70%),
+            conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        animation: cardWave 12s ease-in-out infinite;
         z-index: -1;
     }
 
-    @keyframes wave {
-        0%, 100% { transform: rotate(0deg) scale(1); }
-        50% { transform: rotate(180deg) scale(1.1); }
+    @keyframes cardWave {
+        0%, 100% { 
+            transform: rotate(0deg) scale(1);
+            opacity: 0.3;
+        }
+        50% { 
+            transform: rotate(180deg) scale(1.2);
+            opacity: 0.6;
+        }
     }
 
     .login-header {
         text-align: center;
-        margin-bottom: 2.5rem;
+        margin-bottom: 2rem; /* Reducido de 2.5rem */
     }
 
     .logo-section {
@@ -132,25 +276,24 @@
         align-items: center;
         justify-content: center;
         margin-bottom: 1rem;
+        gap: 1rem; /* Añadido espacio entre logo y texto */
     }
 
-    /* LOGO CON ESTILO DE LIBRO */
     .logo-icon {
         background: var(--hero-gradient);
         color: var(--texto-blanco);
         font-size: 2rem;
         padding: 1rem;
-        margin-right: 1rem;
         border-radius: 16px;
         box-shadow: 0 8px 25px rgba(142, 45, 226, 0.4);
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
+        flex-shrink: 0;
     }
 
-    .logo-icon .fa-book {
-        transform: rotate(-10deg);
+    .logo-icon .fa-graduation-cap {
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     }
 
@@ -170,11 +313,11 @@
     }
 
     .login-form {
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem; /* Reducido de 2rem */
     }
 
     .form-group {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.2rem; /* Reducido de 1.5rem */
     }
 
     .form-label {
@@ -191,7 +334,6 @@
         align-items: center;
     }
 
-    /* ICONOS ESTILIZADOS COMO EMOJIS */
     .input-icon {
         position: absolute;
         left: 1rem;
@@ -206,19 +348,33 @@
     }
 
     .input-icon.user-icon {
-        background: linear-gradient(45deg, #FFD700, #FFA500);
+        background: transparent;
+        border: none;
+        color: var(--purpura-principal);
+        font-size: 1.2rem;
         border-radius: 50%;
-        color: #8B4513;
-        font-size: 1rem;
-        border: 2px solid #DEB887;
+        font-weight: 600;
+        filter: drop-shadow(0 2px 4px rgba(142, 45, 226, 0.3));
+    }
+
+    .input-icon.user-icon::before {
+        content: '👤';
+        font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
     }
 
     .input-icon.lock-icon {
-        background: linear-gradient(45deg, #C0C0C0, #808080);
-        border-radius: 4px;
-        color: #2F4F4F;
-        font-size: 1rem;
-        border: 1px solid #696969;
+        background: transparent;
+        border: none;
+        color: var(--purpura-principal);
+        font-size: 1.2rem;
+        border-radius: 6px;
+        font-weight: 600;
+        filter: drop-shadow(0 2px 4px rgba(142, 45, 226, 0.3));
+    }
+
+    .input-icon.lock-icon::before {
+        content: '🔒';
+        font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
     }
 
     .form-control {
@@ -238,40 +394,49 @@
         background: rgba(255, 255, 255, 1);
     }
 
-    /* BOTÓN DE TOGGLE CON ESTILO DE OJO */
     .password-toggle {
         position: absolute;
         right: 1rem;
-        background: linear-gradient(45deg, #F0F8FF, #E6E6FA);
-        border: 2px solid #DDA0DD;
+        background: transparent;
+        border: none;
         border-radius: 50%;
         cursor: pointer;
-        font-size: 1.1rem;
+        font-size: 1.3rem;
         z-index: 2;
         padding: 0.3rem;
-        color: #4B0082;
+        color: var(--purpura-principal);
         transition: var(--transicion);
-        width: 32px;
-        height: 32px;
+        width: 34px;
+        height: 34px;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-weight: 600;
+        filter: drop-shadow(0 2px 4px rgba(142, 45, 226, 0.3));
     }
 
     .password-toggle:hover {
-        background: linear-gradient(45deg, #E6E6FA, #DDA0DD);
-        color: var(--purpura-principal);
+        background: rgba(142, 45, 226, 0.1);
         transform: scale(1.1);
-        box-shadow: 0 4px 8px rgba(142, 45, 226, 0.3);
+        border-radius: 50%;
+        box-shadow: 0 4px 12px rgba(142, 45, 226, 0.2);
     }
 
+    .password-toggle::before {
+        content: '👁️';
+        font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+        font-size: 1.1rem;
+    }
+
+    .password-toggle.hidden::before {
+        content: '🙈';
+        font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+        font-size: 1rem;
+    }
+
+    /* Ocultar el icono Font Awesome cuando usamos emojis */
     .eye-icon {
-        transition: var(--transicion);
-    }
-
-    .eye-icon.hidden {
-        transform: rotate(180deg);
-        opacity: 0.7;
+        display: none;
     }
 
     .checkbox-input {
@@ -326,9 +491,11 @@
         backdrop-filter: blur(10px);
         border-radius: 16px;
         padding: 1rem;
-        margin-top: 1.5rem;
+        margin-top: 1rem; /* Reducido de 1.5rem */
         border: 1px solid rgba(255, 255, 255, 0.3);
         width: 100%;
+        z-index: 10;
+        position: relative;
     }
 
     .info-text {
@@ -342,8 +509,9 @@
         gap: 0.5rem;
     }
 
-    @media (max-width: 480px) {
-        .main-container {
+    @media (max-width: 600px) {
+        .login-wrapper {
+            max-width: 90%;
             padding: 1rem;
         }
         
@@ -352,23 +520,57 @@
         }
         
         .brand-name {
-            font-size: 2rem;
+            font-size: 1.8rem;
+        }
+
+        .logo-section {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .login-wrapper {
+            padding: 0.5rem;
         }
         
-        .main-container::before {
-            background-size: 60px 60px;
+        .login-card {
+            padding: 1.5rem 1rem;
+        }
+        
+        .brand-name {
+            font-size: 1.6rem;
         }
     }
 </style>
+
+<!-- Fondo animado con efectos -->
+<div class="login-background">
+    <!-- Líneas geométricas animadas -->
+    <div class="geometric-lines"></div>
+    
+    <!-- Partículas flotantes -->
+    <div class="floating-particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+</div>
 
 <div class="login-wrapper">
     <div class="login-card">
         <div class="login-header">
             <div class="logo-section">
                 <div class="logo-icon">
-                    <i class="fas fa-book"></i>
+                    <i class="fas fa-graduation-cap"></i>
                 </div>
-                <h1 class="brand-name">{{ APP_NAME }}</h1>
+                <h1 class="brand-name">{{ APP_NAME or 'EduControl' }}</h1>
             </div>
             <p class="login-subtitle">Sistema de Gestión Educativa</p>
         </div>
@@ -377,10 +579,10 @@
             {{ form.hidden_tag() }}
             
             <div class="form-group">
-                {{ form.correo.label(class="form-label") }}
+                {{ form.correo.label(class="form-label", text="Email o Usuario") }}
                 <div class="input-wrapper">
-                    <i class="fas fa-user input-icon user-icon"></i>
-                    {{ form.correo(class="form-control", placeholder="Ingresa tu correo electrónico") }}
+                    <span class="input-icon user-icon"></span>
+                    {{ form.correo(class="form-control", placeholder="Ingresa tu email o usuario") }}
                 </div>
                 {% if form.correo.errors %}
                     <div style="color: #dc2626; font-size: 0.875rem; margin-top: 0.5rem;">
@@ -394,10 +596,10 @@
             <div class="form-group">
                 {{ form.password.label(class="form-label") }}
                 <div class="input-wrapper">
-                    <i class="fas fa-lock input-icon lock-icon"></i>
+                    <span class="input-icon lock-icon"></span>
                     {{ form.password(class="form-control", placeholder="Ingresa tu contraseña", id="password") }}
                     <button class="password-toggle" type="button" id="togglePassword">
-                        <i class="fas fa-eye eye-icon" id="eyeIcon"></i>
+                        <span class="eye-icon" id="eyeIcon"></span>
                     </button>
                 </div>
                 {% if form.password.errors %}
@@ -410,7 +612,7 @@
             </div>
 
             {% if form.remember_me %}
-            <div class="form-group" style="margin-bottom: 2rem;">
+            <div class="form-group" style="margin-bottom: 1.5rem;">
                 <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.95rem; color: var(--texto-gris); gap: 0.5rem;">
                     {{ form.remember_me(class="checkbox-input") }}
                     <span>{{ form.remember_me.label.text }}</span>
@@ -446,21 +648,17 @@
 document.addEventListener('DOMContentLoaded', function() {
     const togglePassword = document.getElementById('togglePassword');
     const passwordField = document.getElementById('password');
-    const eyeIcon = document.getElementById('eyeIcon');
 
-    if (togglePassword && passwordField && eyeIcon) {
+    if (togglePassword && passwordField) {
         togglePassword.addEventListener('click', function() {
             const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordField.setAttribute('type', type);
             
+            // Cambiar la clase para el emoji
             if (type === 'text') {
-                eyeIcon.classList.remove('fa-eye');
-                eyeIcon.classList.add('fa-eye-slash');
-                eyeIcon.parentElement.parentElement.querySelector('.eye-icon').classList.add('hidden');
+                togglePassword.classList.add('hidden');
             } else {
-                eyeIcon.classList.remove('fa-eye-slash');
-                eyeIcon.classList.add('fa-eye');
-                eyeIcon.parentElement.parentElement.querySelector('.eye-icon').classList.remove('hidden');
+                togglePassword.classList.remove('hidden');
             }
         });
     }

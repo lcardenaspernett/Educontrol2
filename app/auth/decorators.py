@@ -9,7 +9,7 @@ from flask_login import current_user, login_required
 def require_role(*roles):
     """
     Decorador que requiere que el usuario tenga uno de los roles especificados
-    Uso: @require_role('admin_general', 'admin_institucional')
+    Uso: @require_role('superadmin', 'admin')
     """
     def decorator(f):
         @wraps(f)
@@ -18,20 +18,20 @@ def require_role(*roles):
             if not current_user.is_authenticated:
                 return redirect(url_for('auth.login'))
             
-            if not current_user.activo:
+            if not current_user.is_active:
                 flash('Tu cuenta está desactivada. Contacta al administrador.', 'error')
                 return redirect(url_for('auth.login'))
             
-            if current_user.rol not in roles:
+            if current_user.role not in roles:  # Corregido: rol -> role
                 abort(403)  # Forbidden
             
             return f(*args, **kwargs)
         return decorated_function
     return decorator
 
-def admin_required(f):
+def superadmin_required(f):
     """
-    Decorador que requiere rol de administrador (general o institucional)
+    Decorador que requiere rol de superadministrador
     """
     @wraps(f)
     @login_required
@@ -39,11 +39,31 @@ def admin_required(f):
         if not current_user.is_authenticated:
             return redirect(url_for('auth.login'))
         
-        if not current_user.activo:
+        if not current_user.is_active:
             flash('Tu cuenta está desactivada. Contacta al administrador.', 'error')
             return redirect(url_for('auth.login'))
         
-        if not (current_user.is_admin_general() or current_user.is_admin_institucional()):
+        if current_user.role != 'superadmin':  # Simplificado
+            abort(403)
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    """
+    Decorador que requiere rol de administrador (superadmin o admin)
+    """
+    @wraps(f)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('auth.login'))
+        
+        if not current_user.is_active:
+            flash('Tu cuenta está desactivada. Contacta al administrador.', 'error')
+            return redirect(url_for('auth.login'))
+        
+        if current_user.role not in ['superadmin', 'admin']:  # Simplificado
             abort(403)
         
         return f(*args, **kwargs)
@@ -52,7 +72,7 @@ def admin_required(f):
 def same_institution_required(f):
     """
     Decorador que requiere que el usuario pertenezca a la misma institución
-    o sea administrador general
+    o sea superadministrador
     """
     @wraps(f)
     @login_required
@@ -60,12 +80,12 @@ def same_institution_required(f):
         if not current_user.is_authenticated:
             return redirect(url_for('auth.login'))
         
-        if not current_user.activo:
+        if not current_user.is_active:
             flash('Tu cuenta está desactivada. Contacta al administrador.', 'error')
             return redirect(url_for('auth.login'))
         
-        # Los admin generales pueden acceder a todo
-        if current_user.is_admin_general():
+        # Los superadmin pueden acceder a todo
+        if current_user.role == 'superadmin':  # Simplificado
             return f(*args, **kwargs)
         
         # Verificar institución si se proporciona en los argumentos
@@ -86,7 +106,7 @@ def login_required_custom(f):
         if not current_user.is_authenticated:
             return redirect(url_for('auth.login'))
         
-        if not current_user.activo:
+        if not current_user.is_active:
             flash('Tu cuenta está desactivada. Contacta al administrador.', 'error')
             return redirect(url_for('auth.login'))
         

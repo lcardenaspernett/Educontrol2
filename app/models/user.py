@@ -1,5 +1,5 @@
 """
-Modelo Usuario para EduControl
+Modelo User para EduControl
 Maneja usuarios del sistema con roles multi-tenant
 """
 
@@ -9,75 +9,91 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
 
-class Usuario(UserMixin, db.Model):
-    """Modelo de Usuario del sistema"""
+class User(UserMixin, db.Model):
+    """Modelo de User del sistema"""
     
-    __tablename__ = 'usuarios'
+    __tablename__ = 'users'
     
     # Campos principales
     id = db.Column(db.Integer, primary_key=True)
-    nombre_completo = db.Column(db.String(120), nullable=False)
-    correo = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    contraseña_hash = db.Column(db.String(255), nullable=False)
+    full_name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    username = db.Column(db.String(80), unique=True, nullable=True, index=True)  # NUEVO CAMPO
+    password_hash = db.Column(db.String(255), nullable=False)
     
     # Control de roles y estado
-    rol = db.Column(db.Enum('admin_general', 'admin_institucional', 'docente', 'estudiante', 'padre', 
-                           name='rol_usuario'), nullable=False, default='estudiante')
-    activo = db.Column(db.Boolean, default=True, nullable=False)
+    role = db.Column(db.Enum('superadmin', 'admin', 'teacher', 'student', 'parent',
+                           name='user_role'), nullable=False, default='student')
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     
     # Multi-tenant
-    institucion_id = db.Column(db.Integer, db.ForeignKey('instituciones.id'), nullable=True)
+    institution_id = db.Column(db.Integer, db.ForeignKey('institutions.id'), nullable=True)
     
     # Timestamps
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    fecha_actualizacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    ultimo_acceso = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_login = db.Column(db.DateTime)
     
     # Relaciones
-    institucion = db.relationship('Institucion', backref='usuarios')
+    institution = db.relationship('Institution', back_populates='users', foreign_keys=[institution_id])
     
     def __repr__(self):
-        return f'<Usuario {self.correo}>'
+        return f'<User {self.email}>'
     
     def set_password(self, password):
         """Establece la contraseña hasheada"""
-        self.contraseña_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password)
     
     def check_password(self, password):
         """Verifica la contraseña"""
-        return check_password_hash(self.contraseña_hash, password)
+        return check_password_hash(self.password_hash, password)
     
-    def is_admin_general(self):
-        """Verifica si es administrador general"""
-        return self.rol == 'admin_general'
+    # Propiedades para facilitar consultas
+    @property
+    def institution_name(self):
+        return self.institution.name if self.institution else None
     
-    def is_admin_institucional(self):
+    @property
+    def is_institution_admin(self):
+        return self.role == 'admin' and self.institution_id is not None
+    
+    @property
+    def is_superadmin(self):
+        """Verifica si es superadministrador"""
+        return self.role == 'superadmin'
+    
+    def is_admin(self):
         """Verifica si es administrador institucional"""
-        return self.rol == 'admin_institucional'
+        return self.role == 'admin'
     
-    def is_docente(self):
+    def is_teacher(self):
         """Verifica si es docente"""
-        return self.rol == 'docente'
+        return self.role == 'teacher'
     
-    def is_estudiante(self):
+    def is_student(self):
         """Verifica si es estudiante"""
-        return self.rol == 'estudiante'
+        return self.role == 'student'
     
-    def can_access_institution(self, institucion_id):
+    def is_parent(self):
+        """Verifica si es padre/madre"""
+        return self.role == 'parent'
+    
+    def can_access_institution(self, institution_id):
         """Verifica si puede acceder a una institución específica"""
-        if self.is_admin_general():
+        if self.is_superadmin:
             return True
-        return self.institucion_id == institucion_id
+        return self.institution_id == institution_id
     
     def to_dict(self):
         """Convierte el usuario a diccionario"""
         return {
             'id': self.id,
-            'nombre_completo': self.nombre_completo,
-            'correo': self.correo,
-            'rol': self.rol,
-            'activo': self.activo,
-            'institucion_id': self.institucion_id,
-            'fecha_creacion': self.fecha_creacion.isoformat() if self.fecha_creacion else None,
-            'ultimo_acceso': self.ultimo_acceso.isoformat() if self.ultimo_acceso else None
+            'full_name': self.full_name,
+            'email': self.email,
+            'username': self.username,  # AGREGADO
+            'role': self.role,
+            'is_active': self.is_active,
+            'institution_id': self.institution_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'last_login': self.last_login.isoformat() if self.last_login else None
         }

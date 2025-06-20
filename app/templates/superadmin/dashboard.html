@@ -1,0 +1,601 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - {{ super() }}{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: pulse 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1) rotate(0deg); }
+        100% { transform: scale(1.1) rotate(10deg); }
+    }
+
+    .stats-card.institutions {
+        background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%);
+    }
+
+    .stats-card.users {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .stats-card.admins {
+        background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);
+    }
+
+    .stats-card.teachers {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .stats-card.students {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    .stats-card.parents {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+
+    .role-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .stats-icon {
+        font-size: 3rem;
+        opacity: 0.8;
+        margin-bottom: 1rem;
+    }
+
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+
+    .stats-label {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 400px;
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .welcome-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-banner::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/><circle cx="50" cy="50" r="25" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></svg>');
+        opacity: 0.6;
+    }
+
+    @media (max-width: 768px) {
+        .stats-card {
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .chart-container {
+            height: 300px;
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Welcome Banner -->
+<div class="welcome-banner">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="mb-2">
+                ¡Bienvenido, {{ current_user.full_name.split(' ')[0] if current_user.full_name else current_user.email.split('@')[0] }}! 👋
+            </h1>
+            <p class="mb-2 fs-5">
+                {% if current_user.role == 'superadmin' %}
+                    Panel de control principal para la gestión global del sistema EduControl
+                {% elif current_user.role == 'admin' %}
+                    Panel de administración institucional
+                {% elif current_user.role == 'teacher' %}
+                    Panel de control para gestión de clases y estudiantes
+                {% elif current_user.role == 'student' %}
+                    Tu portal estudiantil personalizado
+                {% else %}
+                    Bienvenido al sistema EduControl
+                {% endif %}
+            </p>
+            <div class="d-flex align-items-center gap-2">
+                <i class="fas fa-{{ 'crown' if current_user.role == 'superadmin' else 'cog' if current_user.role == 'admin' else 'chalkboard-teacher' if current_user.role == 'teacher' else 'graduation-cap' if current_user.role == 'student' else 'users' }}"></i>
+                {{ current_user.role.replace('_', ' ').title() }}
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <!-- Botones específicos por rol -->
+        </div>
+    </div>
+</div>
+
+<!-- Contenido específico por rol -->
+{% if current_user.role == 'superadmin' %}
+    <!-- CONTENIDO SUPERADMIN -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stats-card institutions">
+                <div class="stats-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stats-number">12</div>
+                <div class="stats-label">Instituciones</div>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stats-card users">
+                <div class="stats-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-number">1,247</div>
+                <div class="stats-label">Total Usuarios</div>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stats-card admins">
+                <div class="stats-icon">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="stats-number">24</div>
+                <div class="stats-label">Administradores</div>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stats-card teachers">
+                <div class="stats-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="stats-number">156</div>
+                <div class="stats-label">Profesores</div>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stats-card students">
+                <div class="stats-icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="stats-number">985</div>
+                <div class="stats-label">Estudiantes</div>
+            </div>
+        </div>
+        
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stats-card parents">
+                <div class="stats-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="stats-number">682</div>
+                <div class="stats-label">Padres</div>
+            </div>
+        </div>
+    </div>
+
+{% elif current_user.role == 'admin' %}
+    <!-- CONTENIDO ADMIN INSTITUCIONAL -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-3 col-md-6">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ 34 }}</h4>
+                            <p class="card-text">Estudiantes</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-graduate fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ 8 }}</h4>
+                            <p class="card-text">Profesores</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chalkboard-teacher fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ 6 }}</h4>
+                            <p class="card-text">Materias</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-book fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4>{{ 96 }}%</h4>
+                            <p class="card-text">Asistencia</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% elif current_user.role == 'teacher' %}
+    <!-- CONTENIDO PROFESOR -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar-alt me-2"></i>Mis Clases de Hoy</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Matemáticas - Grado 10A</h6>
+                                <p class="mb-1">8:00 AM - 9:30 AM</p>
+                                <small>Aula 201</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">En curso</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Álgebra - Grado 11B</h6>
+                                <p class="mb-1">10:00 AM - 11:30 AM</p>
+                                <small>Aula 203</small>
+                            </div>
+                            <span class="badge bg-secondary rounded-pill">Próxima</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-tasks me-2"></i>Actividades Pendientes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item px-0">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Calificar exámenes</h6>
+                                <small>2 días</small>
+                            </div>
+                            <p class="mb-1">Grado 10A - Examen de álgebra</p>
+                        </div>
+                        <div class="list-group-item px-0">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Preparar clase</h6>
+                                <small>Mañana</small>
+                            </div>
+                            <p class="mb-1">Tema: Ecuaciones cuadráticas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    <!-- CONTENIDO GENÉRICO (estudiante, padre, etc.) -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
+                    <h4>Bienvenido a EduControl</h4>
+                    <p class="text-muted">Tu portal educativo está configurándose. Pronto tendrás acceso a todas las funcionalidades.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Sección de actividad reciente (común para todos) -->
+{% if current_user.role == 'superadmin' %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history me-2"></i>Actividad Reciente del Sistema</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Estadísticas Globales</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-building text-primary me-2"></i>247 instituciones activas</li>
+                                <li><i class="fas fa-users text-success me-2"></i>68% de crecimiento este año</li>
+                                <li><i class="fas fa-chart-line text-info me-2"></i>8 nuevos registros hoy</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Últimas Acciones</h6>
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-success"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Nueva institución registrada</h6>
+                                        <p class="mb-0 text-muted">Colegio San José - Hace 2 horas</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-info"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">Calificaciones registradas</h6>
+                                        <p class="mb-0 text-muted">Notas del primer período actualizadas</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% elif current_user.role == 'admin' %}
+    <div class="row mt-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Estadísticas de la Institución</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Total Usuarios:</strong> 247</p>
+                    <p><strong>Asistencia Promedio:</strong> 23%</p>
+                    <p><strong>Cursos Activos:</strong> 5</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% elif current_user.role == 'student' %}
+    <div class="row mt-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar me-2"></i>Horario de Hoy</h5>
+                </div>
+                <div class="card-body">
+                    <p>Próxima clase en 2 horas</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-line me-2"></i>Mis Calificaciones</h5>
+                </div>
+                <div class="card-body">
+                    <p>Promedio general: 4.2/5.0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% elif current_user.role == 'teacher' %}
+    <div class="row mt-4">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-users me-2"></i>Mis Estudiantes</h5>
+                </div>
+                <div class="card-body">
+                    <p>Total estudiantes: 3</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Accesos Rápidos -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt me-2"></i>Accesos Rápidos</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    {% if current_user.role == 'superadmin' %}
+                        <div class="col-md-3 mb-3">
+                            <a href="#" class="btn btn-outline-primary d-block">
+                                <i class="fas fa-building fa-2x mb-2"></i><br>
+                                Gestionar Instituciones
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="#" class="btn btn-outline-success d-block">
+                                <i class="fas fa-users fa-2x mb-2"></i><br>
+                                Ver Usuarios
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="#" class="btn btn-outline-info d-block">
+                                <i class="fas fa-chart-bar fa-2x mb-2"></i><br>
+                                Reportes
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="#" class="btn btn-outline-warning d-block">
+                                <i class="fas fa-cog fa-2x mb-2"></i><br>
+                                Configuración
+                            </a>
+                        </div>
+
+                    {% elif current_user.role == 'admin' %}
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="btn btn-outline-primary d-block">
+                                <i class="fas fa-user-graduate fa-2x mb-2"></i><br>
+                                Gestionar Estudiantes
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="btn btn-outline-success d-block">
+                                <i class="fas fa-chalkboard-teacher fa-2x mb-2"></i><br>
+                                Gestionar Profesores
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="btn btn-outline-info d-block">
+                                <i class="fas fa-book fa-2x mb-2"></i><br>
+                                Gestionar Cursos
+                            </a>
+                        </div>
+
+                    {% elif current_user.role == 'teacher' %}
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="btn btn-outline-primary d-block">
+                                <i class="fas fa-book fa-2x mb-2"></i><br>
+                                Mis Cursos
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="btn btn-outline-success d-block">
+                                <i class="fas fa-users fa-2x mb-2"></i><br>
+                                Mis Estudiantes
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="#" class="btn btn-outline-info d-block">
+                                <i class="fas fa-chart-line fa-2x mb-2"></i><br>
+                                Calificaciones
+                            </a>
+                        </div>
+
+                    {% elif current_user.role == 'student' %}
+                        <div class="col-md-6 mb-3">
+                            <a href="#" class="btn btn-outline-primary d-block">
+                                <i class="fas fa-book fa-2x mb-2"></i><br>
+                                Ver Materias
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="#" class="btn btn-outline-success d-block">
+                                <i class="fas fa-chart-line fa-2x mb-2"></i><br>
+                                Ver Calificaciones
+                            </a>
+                        </div>
+
+                    {% else %}
+                        <div class="col-12">
+                            <p class="text-muted">Accesos rápidos se configurarán según tu rol.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// JavaScript para animaciones y funcionalidades adicionales
+document.addEventListener('DOMContentLoaded', function() {
+    // Animación de números en las tarjetas
+    function animateNumbers() {
+        const statNumbers = document.querySelectorAll('.stats-number');
+        
+        statNumbers.forEach(number => {
+            const finalValue = parseInt(number.textContent);
+            const duration = 2000;
+            const startTime = Date.now();
+            
+            function updateNumber() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const currentValue = Math.round(finalValue * progress);
+                
+                number.textContent = currentValue;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateNumber);
+                }
+            }
+            
+            if (finalValue > 0) {
+                number.textContent = '0';
+                requestAnimationFrame(updateNumber);
+            }
+        });
+    }
+
+    // Ejecutar animación después de un breve delay
+    setTimeout(animateNumbers, 500);
+});
+</script>
+{% endblock %}
