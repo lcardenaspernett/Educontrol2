@@ -12,7 +12,9 @@
     <nav class="sidebar-nav">
         {% if current_user.is_authenticated %}
             <div class="nav-item">
-                <a href="{{ url_for('main.dashboard') }}" class="nav-link {{ 'active' if request.endpoint == 'main.dashboard' }}" title="Dashboard">
+                <a href="{% if current_user.role == 'superadmin' %}{{ url_for('superadmin.dashboard') }}{% else %}{{ url_for('main.dashboard') }}{% endif %}" 
+                   class="nav-link {{ 'active' if request.endpoint == 'main.dashboard' or request.endpoint == 'superadmin.dashboard' }}" 
+                   title="Dashboard">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
@@ -20,27 +22,104 @@
 
             {% if current_user.role == 'superadmin' %}
                 <div class="nav-item">
-                    <a href="#" class="nav-link" title="Instituciones"><i class="fas fa-building"></i><span>Instituciones</span></a>
+                    <a href="{{ url_for('superadmin.institutions') }}" 
+                       class="nav-link {{ 'active' if request.endpoint == 'superadmin.institutions' }}" 
+                       title="Instituciones">
+                        <i class="fas fa-building"></i>
+                        <span>Instituciones</span>
+                    </a>
                 </div>
                 <div class="nav-item">
-                    <a href="#" class="nav-link" title="Usuarios"><i class="fas fa-users"></i><span>Usuarios</span></a>
+                    <a href="{{ url_for('superadmin.users') }}" 
+                       class="nav-link {{ 'active' if request.endpoint == 'superadmin.users' }}" 
+                       title="Usuarios">
+                        <i class="fas fa-users"></i>
+                        <span>Usuarios</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ url_for('superadmin.courses') }}" 
+                       class="nav-link {{ 'active' if request.endpoint == 'superadmin.courses' }}" 
+                       title="Cursos">
+                        <i class="fas fa-book"></i>
+                        <span>Cursos</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ url_for('superadmin.reports') }}" 
+                       class="nav-link {{ 'active' if request.endpoint == 'superadmin.reports' }}" 
+                       title="Reportes">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Reportes</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ url_for('superadmin.settings') }}" 
+                       class="nav-link {{ 'active' if request.endpoint == 'superadmin.settings' }}" 
+                       title="Configuración">
+                        <i class="fas fa-cogs"></i>
+                        <span>Configuración</span>
+                    </a>
                 </div>
             {% elif current_user.role == 'admin' %}
-                <div class="nav-item"><a href="#" class="nav-link"><i class="fas fa-user-graduate"></i><span>Estudiantes</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link"><i class="fas fa-chalkboard-teacher"></i><span>Profesores</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link"><i class="fas fa-book"></i><span>Cursos</span></a></div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-user-graduate"></i>
+                        <span>Estudiantes</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span>Profesores</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-book"></i>
+                        <span>Cursos</span>
+                    </a>
+                </div>
             {% elif current_user.role == 'teacher' %}
-                <div class="nav-item"><a href="#" class="nav-link"><i class="fas fa-book"></i><span>Mis Cursos</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link"><i class="fas fa-chart-line"></i><span>Calificaciones</span></a></div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-book"></i>
+                        <span>Mis Cursos</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Calificaciones</span>
+                    </a>
+                </div>
             {% elif current_user.role == 'student' %}
-                <div class="nav-item"><a href="#" class="nav-link"><i class="fas fa-book"></i><span>Mis Cursos</span></a></div>
-                <div class="nav-item"><a href="#" class="nav-link"><i class="fas fa-chart-line"></i><span>Calificaciones</span></a></div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-book"></i>
+                        <span>Mis Cursos</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Calificaciones</span>
+                    </a>
+                </div>
             {% elif current_user.role == 'parent' %}
-                <div class="nav-item"><a href="#" class="nav-link"><i class="fas fa-child"></i><span>Mis Hijos</span></a></div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-child"></i>
+                        <span>Mis Hijos</span>
+                    </a>
+                </div>
             {% endif %}
 
             <div class="nav-item mt-4">
-                <a href="{{ url_for('main.profile') }}" class="nav-link" title="Perfil"><i class="fas fa-user"></i><span>Perfil</span></a>
+                <a href="{{ url_for('main.profile') }}" class="nav-link" title="Perfil">
+                    <i class="fas fa-user"></i>
+                    <span>Perfil</span>
+                </a>
             </div>
         {% endif %}
     </nav>

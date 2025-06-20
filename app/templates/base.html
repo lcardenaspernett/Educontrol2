@@ -33,7 +33,9 @@
         <nav class="sidebar-nav">
             {% if current_user.is_authenticated %}
                 <div class="nav-item">
-                    <a href="{{ url_for('main.dashboard') }}" class="nav-link {{ 'active' if request.endpoint == 'main.dashboard' }}" title="Dashboard">
+                    <a href="{% if current_user.role == 'superadmin' %}/superadmin/dashboard{% else %}{{ url_for('main.dashboard') }}{% endif %}" 
+                       class="nav-link {{ 'active' if request.endpoint == 'main.dashboard' or request.endpoint == 'superadmin.dashboard' }}" 
+                       title="Dashboard">
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Dashboard</span>
                     </a>

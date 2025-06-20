@@ -18,6 +18,9 @@ auth_bp = Blueprint('auth', __name__)
 def login():
     """Inicio de sesión"""
     if current_user.is_authenticated:
+        # Si ya está autenticado, redirigir según su rol
+        if current_user.role == 'superadmin':
+            return redirect(url_for('superadmin.dashboard'))
         return redirect(url_for('main.dashboard'))
         
     form = LoginForm()
@@ -49,10 +52,13 @@ def login():
             remember_value = remember_me.data if remember_me else False
             login_user(usuario, remember=remember_value)
                         
-            # Redirigir a la página solicitada o al dashboard
+            # Redirigir según el rol usando URL directa
             next_page = request.args.get('next')
             if not next_page or url_parse(next_page).netloc != '':
-                next_page = url_for('main.dashboard')
+                if usuario.role == 'superadmin':
+                    next_page = url_for('superadmin.dashboard')
+                else:
+                    next_page = url_for('main.dashboard')
                         
             flash(f'¡Bienvenido/a {usuario.full_name}!', 'success')
             return redirect(next_page)

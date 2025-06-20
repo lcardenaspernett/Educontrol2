@@ -208,42 +208,93 @@
     .system-status.error {
         background: #ef4444;
     }
+
+    .refresh-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .refresh-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: rotate(180deg);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #6b7280;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+
+    .empty-state h3 {
+        margin-bottom: 1rem;
+        color: #374151;
+    }
+
+    .empty-state p {
+        margin-bottom: 2rem;
+        font-size: 1.1rem;
+    }
+
+    .btn-get-started {
+        background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%);
+        border: none;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-get-started:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(142, 45, 226, 0.4);
+        color: white;
+        text-decoration: none;
+    }
 </style>
 
 <!-- Chart.js para gráficos -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
-<!-- Pasar datos del servidor a JavaScript de forma segura -->
-<script id="dashboard-data" type="application/json">
-{
-    "chartData": {
-        "institutionNames": {% if chart_data and chart_data.institution_names %}{{ chart_data.institution_names | tojson }}{% else %}[]{% endif %},
-        "studentsData": {% if chart_data and chart_data.students_per_institution %}{{ chart_data.students_per_institution | tojson }}{% else %}[]{% endif %},
-        "teachersData": {% if chart_data and chart_data.teachers_per_institution %}{{ chart_data.teachers_per_institution | tojson }}{% else %}[]{% endif %}
-    },
-    "stats": {
-        "totalInstitutions": {% if stats %}{{ stats.total_institutions or 0 }}{% else %}0{% endif %},
-        "totalUsers": {% if stats %}{{ stats.total_users or 0 }}{% else %}0{% endif %},
-        "totalAdmins": {% if stats %}{{ stats.total_admins or 0 }}{% else %}0{% endif %},
-        "totalTeachers": {% if stats %}{{ stats.total_teachers or 0 }}{% else %}0{% endif %},
-        "totalStudents": {% if stats %}{{ stats.total_students or 0 }}{% else %}0{% endif %},
-        "totalCourses": {% if stats %}{{ stats.total_courses or 0 }}{% else %}0{% endif %}
-    }
-}
-</script>
-
 {% block content %}
 <!-- Welcome Banner -->
 <div class="welcome-banner">
+    <button class="refresh-btn" onclick="refreshDashboard()" title="Actualizar datos">
+        <i class="fas fa-sync-alt"></i>
+    </button>
     <div class="row align-items-center">
         <div class="col-md-8">
             <h1 class="mb-2">
                 ¡Bienvenido, {% if current_user.full_name %}{{ current_user.full_name.split(' ')[0] }}{% else %}Superadmin{% endif %}! 👑
             </h1>
+            {% if stats and stats.total_institutions == 0 %}
+            <p class="mb-2 fs-5">
+                Panel de control maestro del sistema EduControl. ¡Comienza creando tu primera institución!
+            </p>
+            {% else %}
             <p class="mb-2 fs-5">
                 Panel de control maestro del sistema EduControl. Tienes acceso completo a todas las funcionalidades.
             </p>
+            {% endif %}
             <div class="d-flex align-items-center gap-3">
                 <div class="system-status">
                     <i class="fas fa-circle"></i>
@@ -272,7 +323,7 @@
 <!-- Estadísticas Principales -->
 <div class="row g-4 mb-5">
     <div class="col-lg-2 col-md-4 col-sm-6">
-        <div class="stats-card institutions" onclick="location.href='#'">
+        <div class="stats-card institutions" onclick="navigateToInstitutions()">
             <div class="stats-icon">
                 <i class="fas fa-building"></i>
             </div>
@@ -286,7 +337,7 @@
     </div>
     
     <div class="col-lg-2 col-md-4 col-sm-6">
-        <div class="stats-card users" onclick="location.href='#'">
+        <div class="stats-card users" onclick="navigateToUsers()">
             <div class="stats-icon">
                 <i class="fas fa-users"></i>
             </div>
@@ -300,7 +351,7 @@
     </div>
     
     <div class="col-lg-2 col-md-4 col-sm-6">
-        <div class="stats-card admins" onclick="location.href='#'">
+        <div class="stats-card admins" onclick="navigateToAdmins()">
             <div class="stats-icon">
                 <i class="fas fa-user-shield"></i>
             </div>
@@ -314,7 +365,7 @@
     </div>
     
     <div class="col-lg-2 col-md-4 col-sm-6">
-        <div class="stats-card teachers" onclick="location.href='#'">
+        <div class="stats-card teachers" onclick="navigateToTeachers()">
             <div class="stats-icon">
                 <i class="fas fa-chalkboard-teacher"></i>
             </div>
@@ -328,7 +379,7 @@
     </div>
     
     <div class="col-lg-2 col-md-4 col-sm-6">
-        <div class="stats-card students" onclick="location.href='#'">
+        <div class="stats-card students" onclick="navigateToStudents()">
             <div class="stats-icon">
                 <i class="fas fa-user-graduate"></i>
             </div>
@@ -342,7 +393,7 @@
     </div>
     
     <div class="col-lg-2 col-md-4 col-sm-6">
-        <div class="stats-card courses" onclick="location.href='#'">
+        <div class="stats-card courses" onclick="navigateToCourses()">
             <div class="stats-icon">
                 <i class="fas fa-book"></i>
             </div>
@@ -356,14 +407,69 @@
     </div>
 </div>
 
-<!-- Contenido Principal en Dos Columnas -->
+{% if stats and stats.total_institutions == 0 %}
+<!-- Estado Vacío - Primera Vez -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="empty-state">
+                    <i class="fas fa-rocket"></i>
+                    <h3>¡Comencemos a construir tu sistema educativo!</h3>
+                    <p>
+                        Parece que es tu primera vez aquí. Para empezar a usar EduControl, 
+                        necesitas crear al menos una institución educativa.
+                    </p>
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="row text-center mb-4">
+                                <div class="col-md-4 mb-3">
+                                    <div class="text-primary mb-2">
+                                        <i class="fas fa-building" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <h6>1. Crea Institución</h6>
+                                    <small class="text-muted">Registra tu primera institución educativa</small>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="text-success mb-2">
+                                        <i class="fas fa-users" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <h6>2. Agrega Usuarios</h6>
+                                    <small class="text-muted">Invita administradores, profesores y estudiantes</small>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="text-warning mb-2">
+                                        <i class="fas fa-graduation-cap" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <h6>3. ¡Listo!</h6>
+                                    <small class="text-muted">Tu sistema educativo estará operativo</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('superadmin.create_institution') }}" class="btn-get-started">
+                        <i class="fas fa-plus me-2"></i>
+                        Crear Mi Primera Institución
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if not stats or stats.total_institutions > 0 %}
+<!-- Contenido Principal con Datos -->
 <div class="row">
     <!-- Columna Principal - Gráficos y Análisis -->
     <div class="col-lg-8 mb-4">
         <!-- Gráfico de Instituciones -->
         <div class="card mb-4">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5><i class="fas fa-chart-bar me-2"></i>Distribución de Usuarios por Institución</h5>
+                <button class="btn btn-sm btn-outline-primary" onclick="refreshDashboard()">
+                    <i class="fas fa-refresh me-1"></i>Actualizar
+                </button>
             </div>
             <div class="card-body">
                 <div class="chart-container">
@@ -380,7 +486,7 @@
             <div class="card-body">
                 <div class="row text-center">
                     <div class="col-md-3 mb-3">
-                        <a href="#" class="quick-action-btn">
+                        <a href="{{ url_for('superadmin.create_institution') }}" class="quick-action-btn">
                             <div class="quick-action-icon">
                                 <i class="fas fa-plus-circle"></i>
                             </div>
@@ -388,7 +494,7 @@
                         </a>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <a href="#" class="quick-action-btn">
+                        <a href="{{ url_for('superadmin.institutions') }}" class="quick-action-btn">
                             <div class="quick-action-icon">
                                 <i class="fas fa-building"></i>
                             </div>
@@ -396,7 +502,7 @@
                         </a>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <a href="#" class="quick-action-btn">
+                        <a href="{{ url_for('superadmin.users') }}" class="quick-action-btn">
                             <div class="quick-action-icon">
                                 <i class="fas fa-users-cog"></i>
                             </div>
@@ -404,7 +510,7 @@
                         </a>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <a href="#" class="quick-action-btn">
+                        <a href="{{ url_for('superadmin.reports') }}" class="quick-action-btn">
                             <div class="quick-action-icon">
                                 <i class="fas fa-chart-line"></i>
                             </div>
@@ -412,7 +518,7 @@
                         </a>
                     </div>
                     <div class="col-md-3 mb-3">
-                        <a href="#" class="quick-action-btn">
+                        <a href="{{ url_for('superadmin.settings') }}" class="quick-action-btn">
                             <div class="quick-action-icon">
                                 <i class="fas fa-cogs"></i>
                             </div>
@@ -452,8 +558,9 @@
     <div class="col-lg-4">
         <!-- Estado del Sistema -->
         <div class="card mb-4">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5><i class="fas fa-server me-2"></i>Estado del Sistema</h5>
+                <small class="text-muted">Actualizado hace <span id="last-update">0</span> min</small>
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -472,30 +579,33 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span>Último Backup</span>
-                    <span class="text-muted">{% if system_info %}{{ system_info.last_backup or 'Hace 2 horas' }}{% else %}Hace 2 horas{% endif %}</span>
+                    <span class="text-muted">{% if system_info %}{{ system_info.last_backup or 'No configurado' }}{% else %}No configurado{% endif %}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span>Versión del Sistema</span>
-                    <span class="badge bg-primary">{% if system_info %}{{ system_info.version or 'v1.0.0' }}{% else %}v1.0.0{% endif %}</span>
+                    <span class="badge bg-primary">{% if system_info %}{{ system_info.version or 'v2.1.0' }}{% else %}v2.1.0{% endif %}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span>Usuarios Conectados</span>
-                    <span class="fw-bold text-success">{% if system_info %}{{ system_info.connected_users or 24 }}{% else %}24{% endif %}</span>
+                    <span class="fw-bold text-success" id="connected-users">{% if system_info %}{{ system_info.connected_users or 1 }}{% else %}1{% endif %}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center">
                     <span>Uso de Almacenamiento</span>
-                    <span class="text-muted">{% if system_info %}{{ system_info.storage_usage or '68%' }}{% else %}68%{% endif %}</span>
+                    <span class="text-muted">{% if system_info %}{{ system_info.storage_usage or 'N/A' }}{% else %}N/A{% endif %}</span>
                 </div>
             </div>
         </div>
 
         <!-- Actividad Reciente -->
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5><i class="fas fa-history me-2"></i>Actividad Reciente</h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
             </div>
             <div class="card-body">
-                {% if recent_activities %}
+                {% if recent_activities and recent_activities|length > 0 %}
                     {% for activity in recent_activities %}
                     <div class="activity-item">
                         <div class="activity-time">{{ activity.time }}</div>
@@ -504,26 +614,10 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                    <!-- Actividades de ejemplo si no hay datos -->
-                    <div class="activity-item">
-                        <div class="activity-time">Hace 15 minutos</div>
-                        <div class="activity-title">Nueva institución registrada</div>
-                        <div class="activity-description">Colegio Santa María se unió al sistema</div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-time">Hace 1 hora</div>
-                        <div class="activity-title">Usuario administrador creado</div>
-                        <div class="activity-description">Juan Pérez - Instituto Técnico Norte</div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-time">Hace 2 horas</div>
-                        <div class="activity-title">Backup automático completado</div>
-                        <div class="activity-description">Respaldo de base de datos exitoso</div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-time">Hace 3 horas</div>
-                        <div class="activity-title">Actualización del sistema</div>
-                        <div class="activity-description">Versión 1.0.1 desplegada exitosamente</div>
+                    <div class="text-center py-4">
+                        <i class="fas fa-clock text-muted fs-3"></i>
+                        <p class="text-muted mt-2">No hay actividades recientes</p>
+                        <small class="text-muted">Las actividades aparecerán cuando los usuarios interactúen con el sistema</small>
                     </div>
                 {% endif %}
                 
@@ -572,12 +666,106 @@
                         </button>
                     </div>
                 </div>
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Los reportes se generan en tiempo real con los datos más actualizados
+                    </small>
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
+<!-- Pasar datos del servidor a JavaScript de forma segura -->
+<script id="dashboard-data" type="application/json">
+{
+    "chartData": {
+        "institutionNames": {% if chart_data and chart_data.institution_names %}{{ chart_data.institution_names | tojson }}{% else %}[]{% endif %},
+        "studentsData": {% if chart_data and chart_data.students_per_institution %}{{ chart_data.students_per_institution | tojson }}{% else %}[]{% endif %},
+        "teachersData": {% if chart_data and chart_data.teachers_per_institution %}{{ chart_data.teachers_per_institution | tojson }}{% else %}[]{% endif %},
+        "roleLabels": {% if chart_data and chart_data.role_labels %}{{ chart_data.role_labels | tojson }}{% else %}["Administradores", "Profesores", "Estudiantes", "Padres"]{% endif %},
+        "roleData": {% if chart_data and chart_data.role_data %}{{ chart_data.role_data | tojson }}{% else %}[0, 0, 0, 0]{% endif %},
+        "monthlyGrowth": {% if chart_data and chart_data.monthly_growth %}{{ chart_data.monthly_growth | tojson }}{% else %}[]{% endif %}
+    },
+    "stats": {
+        "totalInstitutions": {% if stats %}{{ stats.total_institutions or 0 }}{% else %}0{% endif %},
+        "totalUsers": {% if stats %}{{ stats.total_users or 0 }}{% else %}0{% endif %},
+        "totalAdmins": {% if stats %}{{ stats.total_admins or 0 }}{% else %}0{% endif %},
+        "totalTeachers": {% if stats %}{{ stats.total_teachers or 0 }}{% else %}0{% endif %},
+        "totalStudents": {% if stats %}{{ stats.total_students or 0 }}{% else %}0{% endif %},
+        "totalCourses": {% if stats %}{{ stats.total_courses or 0 }}{% else %}0{% endif %},
+        "newInstitutionsThisMonth": {% if stats %}{{ stats.new_institutions_this_month or 0 }}{% else %}0{% endif %},
+        "newUsersThisWeek": {% if stats %}{{ stats.new_users_this_week or 0 }}{% else %}0{% endif %},
+        "newTeachersThisMonth": {% if stats %}{{ stats.new_teachers_this_month or 0 }}{% else %}0{% endif %},
+        "newStudentsThisMonth": {% if stats %}{{ stats.new_students_this_month or 0 }}{% else %}0{% endif %},
+        "activeAdmins": {% if stats %}{{ stats.active_admins or 0 }}{% else %}0{% endif %},
+        "activeCourses": {% if stats %}{{ stats.active_courses or 0 }}{% else %}0{% endif %}
+    },
+    "urls": {
+        "institutions": "{{ url_for('superadmin.institutions') }}",
+        "users": "{{ url_for('superadmin.users') }}",
+        "courses": "{{ url_for('superadmin.courses') }}",
+        "reports": "{{ url_for('superadmin.reports') }}",
+        "settings": "{{ url_for('superadmin.settings') }}",
+        "createInstitution": "{{ url_for('superadmin.create_institution') }}"
+    }
+}
+</script>
+
+<script>
+// Funciones de navegación para las tarjetas
+function navigateToInstitutions() {
+    const urls = JSON.parse(document.getElementById('dashboard-data').textContent).urls;
+    window.location.href = urls.institutions;
+}
+
+function navigateToUsers() {
+    const urls = JSON.parse(document.getElementById('dashboard-data').textContent).urls;
+    window.location.href = urls.users;
+}
+
+function navigateToAdmins() {
+    const urls = JSON.parse(document.getElementById('dashboard-data').textContent).urls;
+    window.location.href = urls.users + '?role=admin';
+}
+
+function navigateToTeachers() {
+    const urls = JSON.parse(document.getElementById('dashboard-data').textContent).urls;
+    window.location.href = urls.users + '?role=teacher';
+}
+
+function navigateToStudents() {
+    const urls = JSON.parse(document.getElementById('dashboard-data').textContent).urls;
+    window.location.href = urls.users + '?role=student';
+}
+
+function navigateToCourses() {
+    const urls = JSON.parse(document.getElementById('dashboard-data').textContent).urls;
+    window.location.href = urls.courses;
+}
+
+function refreshDashboard() {
+    // Esta función será implementada en el archivo JS separado
+    if (window.DashboardSuperadmin && window.DashboardSuperadmin.refreshDashboard) {
+        window.DashboardSuperadmin.refreshDashboard();
+    } else {
+        location.reload();
+    }
+}
+
+function downloadReport(type) {
+    // Esta función será implementada en el archivo JS separado
+    if (window.DashboardSuperadmin && window.DashboardSuperadmin.downloadReport) {
+        window.DashboardSuperadmin.downloadReport(type);
+    } else {
+        alert('Función de descarga no disponible. Archivo JS no cargado.');
+    }
+}
+</script>
+
 <script src="{{ url_for('static', filename='js/dashboard-superadmin.js') }}"></script>
 {% endblock %}

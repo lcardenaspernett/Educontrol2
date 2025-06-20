@@ -1,4 +1,4 @@
-// Dashboard Superadmin JavaScript
+// Dashboard Superadmin JavaScript - Corregido para datos reales
 // Archivo: app/static/js/dashboard-superadmin.js
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -15,11 +15,14 @@ document.addEventListener('DOMContentLoaded', function() {
             chartData: {
                 institutionNames: [],
                 studentsData: [],
-                teachersData: []
+                teachersData: [],
+                roleLabels: ['Administradores', 'Profesores', 'Estudiantes', 'Padres'],
+                roleData: [0, 0, 0, 0],
+                monthlyGrowth: []
             },
             stats: {
                 totalInstitutions: 0,
-                totalUsers: 0,
+                totalUsers: 1,
                 totalAdmins: 0,
                 totalTeachers: 0,
                 totalStudents: 0,
@@ -56,11 +59,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (targetValue > 0) {
                 number.textContent = '0';
                 requestAnimationFrame(updateNumber);
+            } else {
+                number.textContent = '0';
             }
         });
     }
 
-    // Función para crear gráfico de instituciones
+    // Función para crear gráfico de instituciones con datos reales
     function createInstitutionsChart() {
         const ctx = document.getElementById('institutionsChart');
         if (!ctx) {
@@ -68,22 +73,21 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Usar datos del servidor o datos de ejemplo
-        let institutionNames = ['Instituto A', 'Colegio B', 'Universidad C', 'Escuela D', 'Liceo E'];
-        let studentsData = [120, 85, 200, 67, 150];
-        let teachersData = [12, 8, 25, 7, 18];
+        // Usar datos reales del servidor
+        let institutionNames = [];
+        let studentsData = [];
+        let teachersData = [];
 
-        // Verificar si hay datos del servidor
-        if (dashboardData.chartData) {
-            if (dashboardData.chartData.institutionNames && dashboardData.chartData.institutionNames.length > 0) {
-                institutionNames = dashboardData.chartData.institutionNames;
-            }
-            if (dashboardData.chartData.studentsData && dashboardData.chartData.studentsData.length > 0) {
-                studentsData = dashboardData.chartData.studentsData;
-            }
-            if (dashboardData.chartData.teachersData && dashboardData.chartData.teachersData.length > 0) {
-                teachersData = dashboardData.chartData.teachersData;
-            }
+        if (dashboardData.chartData && dashboardData.chartData.institutionNames.length > 0) {
+            institutionNames = dashboardData.chartData.institutionNames;
+            studentsData = dashboardData.chartData.studentsData;
+            teachersData = dashboardData.chartData.teachersData;
+        }
+
+        // Si no hay datos, mostrar gráfico vacío con mensaje
+        if (institutionNames.length === 0) {
+            showEmptyChart(ctx);
+            return;
         }
 
         const data = {
@@ -155,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             color: 'rgba(0, 0, 0, 0.05)'
                         },
                         ticks: {
-                            stepSize: 10,
+                            stepSize: 1,
                             font: {
                                 size: 12
                             }
@@ -178,13 +182,243 @@ document.addEventListener('DOMContentLoaded', function() {
             new Chart(ctx, config);
         } catch (error) {
             console.error('Error creando el gráfico:', error);
-            // Mostrar mensaje de error en el canvas
-            const container = ctx.parentElement;
-            container.innerHTML = '<div class="text-center p-4"><i class="fas fa-exclamation-triangle text-warning"></i><br>Error cargando el gráfico</div>';
+            showErrorChart(ctx);
         }
     }
 
-    // Función para descargar reportes
+    // Función para mostrar gráfico vacío cuando no hay datos
+    function showEmptyChart(ctx) {
+        const container = ctx.parentElement;
+        container.innerHTML = `
+            <div class="text-center p-5">
+                <i class="fas fa-chart-bar text-muted mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
+                <h5 class="text-muted mb-2">No hay instituciones registradas</h5>
+                <p class="text-muted mb-3">Comienza creando tu primera institución para ver los datos aquí</p>
+                <a href="/superadmin/institution/create" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Crear Primera Institución
+                </a>
+            </div>
+        `;
+    }
+
+    // Función para mostrar error en gráfico
+    function showErrorChart(ctx) {
+        const container = ctx.parentElement;
+        container.innerHTML = `
+            <div class="text-center p-4">
+                <i class="fas fa-exclamation-triangle text-warning mb-3" style="font-size: 2rem;"></i>
+                <p class="text-muted">Error cargando el gráfico</p>
+                <button onclick="location.reload()" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-refresh me-1"></i>Intentar de nuevo
+                </button>
+            </div>
+        `;
+    }
+
+    // Función para crear gráfico de roles con datos reales
+    function createRolesChart() {
+        const ctx = document.getElementById('rolesChart');
+        if (!ctx) return;
+
+        const roleLabels = dashboardData.chartData.roleLabels || ['Administradores', 'Profesores', 'Estudiantes', 'Padres'];
+        const roleData = dashboardData.chartData.roleData || [0, 0, 0, 0];
+
+        // Si todos los datos son 0, mostrar mensaje
+        const totalUsers = roleData.reduce((sum, count) => sum + count, 0);
+        if (totalUsers === 0) {
+            showEmptyRolesChart(ctx);
+            return;
+        }
+
+        const data = {
+            labels: roleLabels,
+            datasets: [{
+                data: roleData,
+                backgroundColor: [
+                    'rgba(142, 45, 226, 0.8)',
+                    'rgba(79, 172, 254, 0.8)',
+                    'rgba(67, 233, 123, 0.8)',
+                    'rgba(252, 74, 26, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(142, 45, 226, 1)',
+                    'rgba(79, 172, 254, 1)',
+                    'rgba(67, 233, 123, 1)',
+                    'rgba(252, 74, 26, 1)'
+                ],
+                borderWidth: 2
+            }]
+        };
+
+        const config = {
+            type: 'doughnut',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Distribución por Roles',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((sum, value) => sum + value, 0);
+                                const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                return `${context.label}: ${context.parsed} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    duration: 1000
+                }
+            }
+        };
+
+        try {
+            new Chart(ctx, config);
+        } catch (error) {
+            console.error('Error creando gráfico de roles:', error);
+            showErrorChart(ctx);
+        }
+    }
+
+    // Función para mostrar gráfico de roles vacío
+    function showEmptyRolesChart(ctx) {
+        const container = ctx.parentElement;
+        container.innerHTML = `
+            <div class="text-center p-4">
+                <i class="fas fa-users text-muted mb-3" style="font-size: 2.5rem; opacity: 0.3;"></i>
+                <h6 class="text-muted mb-2">Sin usuarios por roles</h6>
+                <p class="text-muted small">Los datos aparecerán cuando agregues usuarios</p>
+            </div>
+        `;
+    }
+
+    // Función para crear gráfico de crecimiento mensual
+    function createMonthlyGrowthChart() {
+        const ctx = document.getElementById('monthlyGrowthChart');
+        if (!ctx) return;
+
+        const monthlyGrowth = dashboardData.chartData.monthlyGrowth || [];
+
+        if (monthlyGrowth.length === 0) {
+            showEmptyGrowthChart(ctx);
+            return;
+        }
+
+        const labels = monthlyGrowth.map(item => item.month);
+        const data = monthlyGrowth.map(item => item.users);
+
+        const chartData = {
+            labels: labels,
+            datasets: [{
+                label: 'Nuevos Usuarios',
+                data: data,
+                borderColor: 'rgba(142, 45, 226, 1)',
+                backgroundColor: 'rgba(142, 45, 226, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: 'rgba(142, 45, 226, 1)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5
+            }]
+        };
+
+        const config = {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Crecimiento Mensual',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: 'rgba(142, 45, 226, 1)',
+                        borderWidth: 1
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        };
+
+        try {
+            new Chart(ctx, config);
+        } catch (error) {
+            console.error('Error creando gráfico de crecimiento:', error);
+            showErrorChart(ctx);
+        }
+    }
+
+    // Función para mostrar gráfico de crecimiento vacío
+    function showEmptyGrowthChart(ctx) {
+        const container = ctx.parentElement;
+        container.innerHTML = `
+            <div class="text-center p-4">
+                <i class="fas fa-chart-line text-muted mb-3" style="font-size: 2.5rem; opacity: 0.3;"></i>
+                <h6 class="text-muted mb-2">Sin datos de crecimiento</h6>
+                <p class="text-muted small">El gráfico se poblará con el tiempo</p>
+            </div>
+        `;
+    }
+
+    // Función para descargar reportes (CORREGIDA)
     window.downloadReport = function(type) {
         const reportTypes = {
             'institutions': 'Reporte de Instituciones',
@@ -199,22 +433,154 @@ document.addEventListener('DOMContentLoaded', function() {
         button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generando...';
         button.disabled = true;
         
-        // Simular descarga (en implementación real, esto sería una llamada al servidor)
-        setTimeout(() => {
-            alert('Descargando: ' + reportTypes[type] + '\n\nEn una implementación real, esto generaría y descargaría el archivo.');
-            
-            // Restaurar botón
-            button.innerHTML = originalText;
-            button.disabled = false;
-            
-            // En la implementación real, harías algo como:
-            // window.location.href = '/superadmin/download-report/' + type;
-        }, 1500);
+        // Realizar descarga real
+        fetch(`/superadmin/download-report/${type}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Crear enlace de descarga
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `reporte_${type}_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                showNotification('Reporte descargado exitosamente', 'success');
+            })
+            .catch(error => {
+                console.error('Error descargando reporte:', error);
+                showNotification('Error al generar el reporte: ' + error.message, 'danger');
+            })
+            .finally(() => {
+                // Restaurar botón
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
     };
+
+    // Función para actualizar dashboard con datos reales
+    window.refreshDashboard = function() {
+        const refreshBtn = document.querySelector('.refresh-btn i');
+        if (refreshBtn) {
+            refreshBtn.classList.add('fa-spin');
+        }
+        
+        fetch('/superadmin/api/dashboard-data')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar estadísticas en las tarjetas
+                    updateStatsCards(data.stats);
+                    
+                    // Actualizar información del sistema
+                    updateSystemInfo(data.system_info);
+                    
+                    // Recrear gráficos con nuevos datos
+                    dashboardData = data;
+                    recreateCharts();
+                    
+                    showNotification('Dashboard actualizado correctamente', 'success');
+                } else {
+                    throw new Error(data.error || 'Error desconocido');
+                }
+            })
+            .catch(error => {
+                console.error('Error actualizando dashboard:', error);
+                showNotification('Error al actualizar los datos: ' + error.message, 'danger');
+            })
+            .finally(() => {
+                if (refreshBtn) {
+                    refreshBtn.classList.remove('fa-spin');
+                }
+            });
+    };
+
+    // Función para actualizar las tarjetas de estadísticas
+    function updateStatsCards(stats) {
+        const updateCard = (selector, value) => {
+            const element = document.querySelector(selector);
+            if (element) {
+                element.setAttribute('data-target', value);
+                element.textContent = value.toLocaleString();
+            }
+        };
+
+        // Buscar y actualizar cada tarjeta por su contenido o clase
+        const cards = document.querySelectorAll('.stats-card');
+        cards.forEach(card => {
+            const numberElement = card.querySelector('.stats-number');
+            const labelElement = card.querySelector('.stats-label');
+            
+            if (numberElement && labelElement) {
+                const label = labelElement.textContent.toLowerCase();
+                
+                if (label.includes('instituciones')) {
+                    numberElement.setAttribute('data-target', stats.total_institutions);
+                    numberElement.textContent = stats.total_institutions.toLocaleString();
+                } else if (label.includes('total usuarios')) {
+                    numberElement.setAttribute('data-target', stats.total_users);
+                    numberElement.textContent = stats.total_users.toLocaleString();
+                } else if (label.includes('administradores')) {
+                    numberElement.setAttribute('data-target', stats.total_admins);
+                    numberElement.textContent = stats.total_admins.toLocaleString();
+                } else if (label.includes('profesores')) {
+                    numberElement.setAttribute('data-target', stats.total_teachers);
+                    numberElement.textContent = stats.total_teachers.toLocaleString();
+                } else if (label.includes('estudiantes')) {
+                    numberElement.setAttribute('data-target', stats.total_students);
+                    numberElement.textContent = stats.total_students.toLocaleString();
+                } else if (label.includes('cursos')) {
+                    numberElement.setAttribute('data-target', stats.total_courses);
+                    numberElement.textContent = stats.total_courses.toLocaleString();
+                }
+            }
+        });
+    }
+
+    // Función para actualizar información del sistema
+    function updateSystemInfo(systemInfo) {
+        // Actualizar usuarios conectados
+        const connectedUsersElement = document.getElementById('connected-users');
+        if (connectedUsersElement && systemInfo.connected_users !== undefined) {
+            connectedUsersElement.textContent = systemInfo.connected_users;
+        }
+        
+        // Actualizar otros elementos del sistema si existen
+        // ... más actualizaciones según sea necesario
+    }
+
+    // Función para recrear todos los gráficos
+    function recreateCharts() {
+        // Limpiar contenedores de gráficos
+        const chartContainers = ['institutionsChart', 'rolesChart', 'monthlyGrowthChart'];
+        chartContainers.forEach(id => {
+            const container = document.getElementById(id);
+            if (container && container.parentElement) {
+                // Crear nuevo canvas
+                const newCanvas = document.createElement('canvas');
+                newCanvas.id = id;
+                container.parentElement.replaceChild(newCanvas, container);
+            }
+        });
+        
+        // Recrear gráficos
+        setTimeout(() => {
+            createInstitutionsChart();
+            createRolesChart();
+            createMonthlyGrowthChart();
+        }, 100);
+    }
 
     // Función para manejar clics en las tarjetas de estadísticas
     function setupStatsCardClicks() {
-        const statsCards = document.querySelectorAll('.stats-card');
+        const statsCards = document.querySelectorAll('.stats-card[onclick]');
         
         statsCards.forEach(card => {
             card.addEventListener('click', function() {
@@ -223,26 +589,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => {
                     this.style.transform = '';
                 }, 150);
-                
-                // Aquí puedes agregar navegación específica según el tipo de tarjeta
-                if (this.classList.contains('institutions')) {
-                    console.log('Navegar a gestión de instituciones');
-                    // window.location.href = '/superadmin/institutions';
-                } else if (this.classList.contains('users')) {
-                    console.log('Navegar a gestión de usuarios');
-                    // window.location.href = '/superadmin/users';
-                } else if (this.classList.contains('teachers')) {
-                    console.log('Navegar a gestión de profesores');
-                    // window.location.href = '/superadmin/teachers';
-                } else if (this.classList.contains('students')) {
-                    console.log('Navegar a gestión de estudiantes');
-                    // window.location.href = '/superadmin/students';
-                }
             });
         });
     }
 
-    // Función para mostrar notificaciones que NO mueven el dashboard
+    // Función para mostrar notificaciones
     function showNotification(message, type) {
         type = type || 'info';
         
@@ -252,7 +603,6 @@ document.addEventListener('DOMContentLoaded', function() {
             notificationContainer = document.createElement('div');
             notificationContainer.id = 'notification-overlay';
             
-            // Estilos que NO afectan el layout del documento
             notificationContainer.style.cssText = 
                 'position: fixed !important;' +
                 'top: 80px !important;' +
@@ -267,14 +617,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 'border: none !important;' +
                 'background: transparent !important;';
             
-            // Agregar directamente al body al final
             document.body.appendChild(notificationContainer);
         }
 
         // Crear la notificación
         const notification = document.createElement('div');
         
-        // Estilos inline para evitar conflictos con CSS existente
         notification.style.cssText = 
             'margin-bottom: 10px !important;' +
             'padding: 12px 16px !important;' +
@@ -339,7 +687,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Agregar al contenedor
         notificationContainer.appendChild(notification);
         
-        // Forzar repaint y mostrar
+        // Mostrar animación
         requestAnimationFrame(function() {
             notification.style.transform = 'translateX(0) !important';
             notification.style.opacity = '1 !important';
@@ -356,7 +704,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         notification.remove();
                     }
                     
-                    // Limpiar contenedor si está vacío
                     if (notificationContainer && notificationContainer.children.length === 0) {
                         notificationContainer.remove();
                     }
@@ -365,85 +712,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 
-    // Función para probar notificaciones
-    window.testNotifications = function() {
-        const notifications = [
-            { message: 'Sistema funcionando correctamente', type: 'success' },
-            { message: 'Uso de almacenamiento alto (85%)', type: 'warning' },
-            { message: 'Nuevo usuario registrado: María García', type: 'info' },
-            { message: 'Error de conexión detectado', type: 'danger' }
-        ];
-
-        notifications.forEach(function(notif, index) {
-            setTimeout(function() {
-                showNotification(notif.message, notif.type);
-            }, index * 500);
-        });
-    };
-
-    // Función para actualizar estadísticas en tiempo real (opcional)
-    function updateStatsInRealTime() {
-        // Esta función se puede llamar periódicamente para actualizar estadísticas
-        // Ejemplo: hacer una llamada AJAX cada 30 segundos
-        
-        // fetch('/api/superadmin/stats')
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         // Actualizar números en las tarjetas
-        //         updateStatsCards(data);
-        //     })
-        //     .catch(error => {
-        //         console.error('Error actualizando estadísticas:', error);
-        //     });
-    }
-
-    // Función para verificar el estado del sistema
-    function checkSystemHealth() {
-        // Simular verificación de salud del sistema
-        const indicators = [
-            { name: 'Servidor', status: 'healthy' },
-            { name: 'Base de Datos', status: 'healthy' },
-            { name: 'API', status: 'healthy' },
-            { name: 'Almacenamiento', status: 'warning' } // Ejemplo de advertencia
-        ];
-        
-        indicators.forEach(function(indicator) {
-            if (indicator.status === 'warning') {
-                showNotification('Advertencia en ' + indicator.name + ': Uso de almacenamiento alto', 'warning');
-            } else if (indicator.status === 'error') {
-                showNotification('Error en ' + indicator.name + ': Requiere atención inmediata', 'danger');
-            }
-        });
-    }
-
-    // Inicializar funcionalidades
+    // Inicializar funcionalidades del dashboard
     function initDashboard() {
-        // Ejecutar animaciones
+        // Ejecutar animaciones de números
         setTimeout(animateNumbers, 500);
         
-        // Crear gráfico
-        setTimeout(createInstitutionsChart, 1000);
+        // Crear gráficos
+        setTimeout(() => {
+            createInstitutionsChart();
+            createRolesChart();
+            createMonthlyGrowthChart();
+        }, 1000);
         
         // Configurar eventos de tarjetas
         setupStatsCardClicks();
         
-        // Verificar salud del sistema (opcional)
-        // setTimeout(checkSystemHealth, 2000);
-        
-        // Actualizar estadísticas cada 30 segundos (opcional)
-        // setInterval(updateStatsInRealTime, 30000);
-        
-        console.log('Dashboard del Superadmin inicializado correctamente');
+        console.log('Dashboard del Superadmin inicializado correctamente con datos reales');
     }
 
     // Ejecutar inicialización
     initDashboard();
 
-    // Exponer funciones globales si es necesario
+    // Exponer funciones globales
     window.DashboardSuperadmin = {
         animateNumbers: animateNumbers,
         createChart: createInstitutionsChart,
         showNotification: showNotification,
-        downloadReport: window.downloadReport
+        downloadReport: window.downloadReport,
+        refreshDashboard: window.refreshDashboard
     };
 });
