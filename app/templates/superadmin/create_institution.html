@@ -1,972 +1,1475 @@
+<!-- app/templates/superadmin/create_institution.html - VERSIÓN 5.0 CORREGIDA -->
 {% extends "base.html" %}
 
-{% block title %}Nueva Institución - {{ super() }}{% endblock %}
-{% block page_title %}Nueva Institución{% endblock %}
+{% block title %}Crear Nueva Institución - EduControl{% endblock %}
 
 {% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
-    /* Estilos base (se mantienen iguales) */
-    .form-container {
-        background: white;
-        border-radius: 16px;
-        padding: 2.5rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        margin-bottom: 2rem;
-    }
+    /* ===== WIZARD V5.0 - COMPATIBLE CON SIDEBAR ===== */
     
-    /* ... (otros estilos existentes) ... */
+    .main-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-    /* Nuevos estilos para pestañas */
-    .form-tabs {
-        display: flex;
-        border-bottom: 2px solid #e5e7eb;
-        margin-bottom: 2rem;
-        gap: 0.5rem;
-    }
-    
-    .tab-btn {
-        padding: 0.75rem 1.5rem;
-        background: none;
-        border: none;
-        border-radius: 8px 8px 0 0;
-        font-weight: 600;
-        color: #6b7280;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .tab-btn.active {
-        color: #8E2DE2;
-        background: rgba(142, 45, 226, 0.1);
-        border-bottom: 3px solid #8E2DE2;
-    }
-    
-    .tab-content {
-        display: none;
-    }
-    
-    .tab-content.active {
-        display: block;
-    }
-    
-    /* Barra de progreso */
-    .progress-container {
-        margin-bottom: 2rem;
-    }
-    
-    .progress-bar {
-        height: 8px;
-        background: #e5e7eb;
-        border-radius: 4px;
+    .wizard-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
         overflow: hidden;
+        position: relative;
+        animation: slideInUp 0.6s ease-out;
     }
-    
-    .progress-fill {
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .wizard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+        position: relative;
+    }
+
+    .wizard-header::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 20px;
+        background: white;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .wizard-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .wizard-subtitle {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-bottom: 30px;
+    }
+
+    /* Progress Steps */
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        position: relative;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .progress-line {
+        position: absolute;
+        top: 25px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: rgba(255,255,255,0.3);
+        z-index: 1;
+    }
+
+    .progress-line-fill {
         height: 100%;
-        background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%);
+        background: #ffd700;
         width: 0%;
         transition: width 0.5s ease;
+        border-radius: 2px;
     }
-    
-    .progress-text {
-        text-align: right;
-        font-size: 0.875rem;
-        color: #6b7280;
-        margin-top: 0.25rem;
+
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+        flex: 1;
+        min-width: 80px;
     }
-    
-    /* Estilos para upload de archivos */
-    .file-upload {
-        border: 2px dashed #e5e7eb;
-        border-radius: 8px;
-        padding: 2rem;
+
+    .step-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        margin-bottom: 10px;
+        border: 3px solid transparent;
+    }
+
+    .step.active .step-circle {
+        background: #ffd700;
+        color: #333;
+        transform: scale(1.1);
+        box-shadow: 0 0 20px rgba(255,215,0,0.5);
+    }
+
+    .step.completed .step-circle {
+        background: #28a745;
+        color: white;
+    }
+
+    .step-label {
+        font-size: 0.8rem;
         text-align: center;
-        cursor: pointer;
+        font-weight: 500;
+        opacity: 0.8;
+        line-height: 1.2;
+    }
+
+    .step.active .step-label {
+        opacity: 1;
+        font-weight: 600;
+    }
+
+    /* Form Content */
+    .wizard-content {
+        padding: 40px;
+        min-height: 500px;
+        position: relative;
+    }
+
+    .step-content {
+        display: none;
+        animation: fadeInUp 0.5s ease;
+    }
+
+    .step-content.active {
+        display: block;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .step-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .step-title {
+        font-size: 1.6rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .step-description {
+        color: #6c757d;
+        font-size: 1rem;
+    }
+
+    /* Form Fields */
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 12px 15px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 15px rgba(102,126,234,0.2);
+        background: white;
+        outline: none;
+    }
+
+    .input-group {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        z-index: 3;
+    }
+
+    .input-group .form-control {
+        padding-left: 45px;
+    }
+
+    /* URL Preview */
+    .url-preview {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 10px;
+        font-family: 'Monaco', 'Consolas', monospace;
+        font-size: 0.85rem;
+        color: #495057;
+        text-align: center;
         transition: all 0.3s ease;
     }
-    
-    .file-upload:hover {
-        border-color: #8E2DE2;
-        background: rgba(142, 45, 226, 0.05);
+
+    .url-preview.success {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        border-color: #28a745;
+        color: #155724;
     }
-    
-    .file-upload input {
-        display: none;
+
+    /* Validation States */
+    .is-valid {
+        border-color: #28a745 !important;
+        background: #f8fff9;
     }
-    
-    .file-preview {
-        margin-top: 1rem;
-        display: none;
+
+    .is-invalid {
+        border-color: #dc3545 !important;
+        background: #fff8f8;
     }
-    
-    .file-preview img {
-        max-width: 200px;
-        max-height: 200px;
-        border-radius: 8px;
-    }
-    
-    /* Estilos para campos dependientes */
-    .dependent-field {
-        display: none;
-    }
-    
-    .dependent-field.active {
+
+    .valid-feedback, .invalid-feedback {
         display: block;
+        font-size: 0.8rem;
+        margin-top: 8px;
+        padding: 5px 10px;
+        border-radius: 5px;
     }
-    
-    /* Badge para validación */
-    .validation-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        margin-left: 0.5rem;
+
+    .valid-feedback {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
     }
-    
-    .badge-valid {
-        background: rgba(16, 185, 129, 0.1);
-        color: #10b981;
+
+    .invalid-feedback {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
     }
-    
-    .badge-invalid {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
+
+    /* Checkbox and Radio Groups */
+    .checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
     }
-    
-    /* Tooltips */
-    .tooltip-icon {
-        color: #6b7280;
-        cursor: help;
-        margin-left: 0.25rem;
+
+    .checkbox-item, .radio-item {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
     }
-    
-    .tooltip-text {
-        display: none;
+
+    .checkbox-item::before {
+        content: '';
         position: absolute;
-        background: #1f2937;
-        color: white;
-        padding: 0.5rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.875rem;
-        width: 250px;
-        z-index: 100;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(102,126,234,0.1), transparent);
+        transition: left 0.5s ease;
     }
-    
-    .tooltip-icon:hover + .tooltip-text {
+
+    .checkbox-item:hover::before {
+        left: 100%;
+    }
+
+    .checkbox-item:hover, .radio-item:hover {
+        border-color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102,126,234,0.2);
+    }
+
+    .checkbox-item input:checked + label,
+    .radio-item input:checked + label {
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    .checkbox-item input:checked,
+    .radio-item input:checked {
+        accent-color: #667eea;
+    }
+
+    /* Plan Cards */
+    .plan-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+    }
+
+    .plan-card {
+        background: white;
+        border: 3px solid #e9ecef;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .plan-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .plan-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        border-color: #667eea;
+    }
+
+    .plan-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .plan-card.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #f8f9ff 0%, #e6f3ff 100%);
+        transform: translateY(-5px);
+        box-shadow: 0 12px 25px rgba(102,126,234,0.3);
+    }
+
+    .plan-card.selected::before {
+        transform: scaleX(1);
+    }
+
+    .plan-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
         display: block;
+    }
+
+    .plan-price {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #28a745;
+        margin: 10px 0;
+    }
+
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 15px 0;
+        text-align: left;
+    }
+
+    .plan-features li {
+        padding: 6px 0;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .plan-features li:last-child {
+        border-bottom: none;
+    }
+
+    /* File Upload */
+    .file-upload-area {
+        border: 3px dashed #dee2e6;
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .file-upload-area:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+    }
+
+    .file-upload-area.dragover {
+        border-color: #28a745;
+        background: #f8fff9;
+    }
+
+    .file-preview {
+        max-width: 150px;
+        max-height: 150px;
+        border-radius: 10px;
+        margin: 15px auto;
+        display: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Navigation Buttons */
+    .wizard-navigation {
+        background: #f8f9fa;
+        padding: 20px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .btn-wizard {
+        padding: 10px 25px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-wizard::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.6s ease, height 0.6s ease;
+    }
+
+    .btn-wizard:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn-previous {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-previous:hover {
+        background: #5a6268;
+        transform: translateX(-3px);
+    }
+
+    .btn-next {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-next:hover {
+        transform: translateX(3px);
+        box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .btn-submit:hover {
+        transform: scale(1.02);
+        box-shadow: 0 5px 15px rgba(40,167,69,0.4);
+    }
+
+    /* Loading State */
+    .spinner {
+        width: 30px;
+        height: 30px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .wizard-container {
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        .wizard-content {
+            padding: 25px;
+        }
+
+        .step-title {
+            font-size: 1.4rem;
+        }
+
+        .plan-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .checkbox-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .progress-steps {
+            justify-content: center;
+        }
+
+        .step {
+            min-width: 60px;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            font-size: 0.9rem;
+        }
+
+        .step-label {
+            font-size: 0.7rem;
+        }
+
+        .wizard-navigation {
+            padding: 15px 20px;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .wizard-title {
+            font-size: 1.5rem;
+        }
+    }
+
+    /* Success Animation */
+    .success-animation {
+        text-align: center;
+        padding: 50px 20px;
+    }
+
+    .success-icon {
+        font-size: 4rem;
+        color: #28a745;
+        margin-bottom: 25px;
+        animation: bounceIn 1s ease;
+    }
+
+    @keyframes bounceIn {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.2);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .confetti {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+    }
+
+    /* Additional Animations */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+        20%, 40%, 60%, 80% { transform: translateX(3px); }
+    }
+
+    .summary-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .summary-item {
+        padding: 0.25rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+
+    .plan-summary {
+        border: 2px solid #dee2e6;
+    }
+
+    .step-content {
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .file-upload-area.dragover {
+        border-color: #28a745 !important;
+        background-color: #f8fff9 !important;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-lg-10 col-xl-8">
-            <div class="form-container">
-                <!-- Barra de progreso -->
-                <div class="progress-container">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress-fill"></div>
-                    </div>
-                    <div class="progress-text" id="progress-text">0% completado</div>
+<div class="main-content">
+    <div class="wizard-container">
+        <!-- Header con progreso -->
+        <div class="wizard-header">
+            <div class="wizard-title">
+                <i class="fas fa-university"></i>
+                Crear Nueva Institución
+            </div>
+            <div class="wizard-subtitle">
+                Complete el proceso paso a paso para registrar su institución en EduControl
+            </div>
+            
+            <!-- Progress Steps -->
+            <div class="progress-steps">
+                <div class="progress-line">
+                    <div class="progress-line-fill" id="progressFill"></div>
                 </div>
                 
-                <!-- Pestañas del formulario -->
-                <div class="form-tabs">
-                    <button type="button" class="tab-btn active" data-tab="basic">Información Básica</button>
-                    <button type="button" class="tab-btn" data-tab="legal">Identificación Legal</button>
-                    <button type="button" class="tab-btn" data-tab="location">Ubicación</button>
-                    <button type="button" class="tab-btn" data-tab="academic">Información Académica</button>
-                    <button type="button" class="tab-btn" data-tab="director">Rector/Director</button>
-                    <button type="button" class="tab-btn" data-tab="resources">Recursos Visuales</button>
+                <div class="step active" data-step="1">
+                    <div class="step-circle">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="step-label">Información<br>Básica</div>
+                </div>
+                
+                <div class="step" data-step="2">
+                    <div class="step-circle">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="step-label">Identificación<br>Legal</div>
+                </div>
+                
+                <div class="step" data-step="3">
+                    <div class="step-circle">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="step-label">Ubicación</div>
+                </div>
+                
+                <div class="step" data-step="4">
+                    <div class="step-circle">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="step-label">Información<br>Académica</div>
+                </div>
+                
+                <div class="step" data-step="5">
+                    <div class="step-circle">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="step-label">Director/<br>Rector</div>
+                </div>
+                
+                <div class="step" data-step="6">
+                    <div class="step-circle">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <div class="step-label">Recursos<br>Visuales</div>
+                </div>
+                
+                <div class="step" data-step="7">
+                    <div class="step-circle">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="step-label">Plan y<br>Confirmación</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario principal -->
+        <form id="institutionWizard" method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            
+            <div class="wizard-content">
+                <!-- Step 1: Información Básica -->
+                <div class="step-content active" data-step="1">
+                    <div class="step-header">
+                        <div class="step-title">
+                            <i class="fas fa-info-circle text-primary"></i>
+                            Información Básica
+                        </div>
+                        <div class="step-description">
+                            Comencemos con la información fundamental de su institución
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                {{ form.name.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-university input-icon"></i>
+                                    {{ form.name(class="form-control", placeholder="Ej: Institución Educativa San José de La Salle", autocomplete="off") }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                {{ form.slug.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-link input-icon"></i>
+                                    {{ form.slug(class="form-control", placeholder="san-jose-la-salle", autocomplete="off") }}
+                                </div>
+                                <div id="urlPreview" class="url-preview">
+                                    <i class="fas fa-globe"></i> https://[su-slug].educontrol.co
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Estado del Slug</label>
+                                <div id="slugStatus" class="form-control" style="background: #f8f9fa; border: 2px dashed #dee2e6;">
+                                    <i class="fas fa-clock text-warning"></i> Verificando...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", rows="3", placeholder="Descripción breve de la institución, su enfoque educativo y valores principales...") }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                {{ form.address.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-home input-icon"></i>
+                                    {{ form.address(class="form-control", rows="2", placeholder="Calle 123 # 45-67, Barrio Centro") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.neighborhood.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-map-pin input-icon"></i>
+                                    {{ form.neighborhood(class="form-control", placeholder="Nombre del barrio") }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de Contacto -->
+                    <h5 class="mt-4 mb-3">
+                        <i class="fas fa-phone text-info"></i>
+                        Información de Contacto
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.phone.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-phone input-icon"></i>
+                                    {{ form.phone(class="form-control", placeholder="+57 300 123 4567") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.phone_secondary.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-phone input-icon"></i>
+                                    {{ form.phone_secondary(class="form-control", placeholder="+57 300 123 4567 (opcional)") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.email.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-envelope input-icon"></i>
+                                    {{ form.email(class="form-control", placeholder="contacto@institucion.edu.co") }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.website.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-globe input-icon"></i>
+                                    {{ form.website(class="form-control", placeholder="https://www.institucion.edu.co (opcional)") }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <form method="POST" novalidate enctype="multipart/form-data">
-                    <!-- SECCIÓN 1: INFORMACIÓN BÁSICA -->
-                    <div class="tab-content active" id="basic-tab">
-                        <div class="form-header">
-                            <h1><i class="fas fa-building"></i> Información Básica</h1>
-                            <p>Complete los datos fundamentales de la institución</p>
+                <!-- Step 2: Identificación Legal -->
+                <div class="step-content" data-step="2">
+                    <div class="step-header">
+                        <div class="step-title">
+                            <i class="fas fa-file-alt text-success"></i>
+                            Identificación Legal
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="form-group">
-                                    <label for="name" class="form-label">
-                                        Nombre oficial de la institución <span class="required">*</span>
-                                    </label>
-                                    <input type="text" class="form-control" id="name" name="name" required>
-                                    <div class="form-text">Nombre completo y oficial según registros</div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="slug" class="form-label">
-                                        URL del sistema <span class="required">*</span>
-                                        <span id="slug-validation-badge" class="validation-badge" style="display: none;">
-                                            <i class="fas fa-check-circle"></i>
-                                            <span id="slug-validation-text"></span>
-                                        </span>
-                                    </label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="slug" name="slug" required>
-                                        <span class="input-group-text">.educontrol.co</span>
-                                    </div>
-                                    <div class="form-text">
-                                        <a href="#" id="suggest-slug">Generar sugerencia</a> | 
-                                        <a href="#" id="check-slug">Verificar disponibilidad</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="description" class="form-label">Descripción breve</label>
-                            <textarea class="form-control" id="description" name="description" rows="3" maxlength="255"></textarea>
-                            <div class="form-text">Máximo 255 caracteres</div>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary next-tab" data-next="legal">
-                                Siguiente <i class="fas fa-arrow-right"></i>
-                            </button>
+                        <div class="step-description">
+                            Información legal y documentos oficiales de la institución
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 2: IDENTIFICACIÓN LEGAL -->
-                    <div class="tab-content" id="legal-tab">
-                        <div class="form-header">
-                            <h1><i class="fas fa-file-contract"></i> Identificación Legal</h1>
-                            <p>Documentos y registros oficiales de la institución</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.dane_code.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-hashtag input-icon"></i>
+                                    {{ form.dane_code(class="form-control", placeholder="12345678901", maxlength="11") }}
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i>
+                                    Código único de 11 dígitos del Ministerio de Educación
+                                </small>
+                            </div>
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="dane_code" class="form-label">
-                                        Código DANE <span class="required">*</span>
-                                        <i class="fas fa-info-circle tooltip-icon"></i>
-                                        <span class="tooltip-text">Código único de 11 dígitos asignado por el Ministerio de Educación</span>
-                                    </label>
-                                    <input type="text" class="form-control" id="dane_code" name="dane_code" 
-                                           pattern="[0-9]{11}" maxlength="11" required>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="nit" class="form-label">
-                                        NIT <span class="required">*</span>
-                                    </label>
-                                    <input type="text" class="form-control" id="nit" name="nit" required>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="nit_check_digit" class="form-label">
-                                        Dígito de verificación <span class="required">*</span>
-                                    </label>
-                                    <input type="text" class="form-control" id="nit_check_digit" name="nit_check_digit" 
-                                           pattern="[0-9]{1}" maxlength="1" required>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.nit.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-id-card input-icon"></i>
+                                    {{ form.nit(class="form-control", placeholder="123456789") }}
                                 </div>
                             </div>
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="icfes_code" class="form-label">
-                                        Código ICFES (opcional)
-                                    </label>
-                                    <input type="text" class="form-control" id="icfes_code" name="icfes_code">
-                                    <div class="form-text">Solo para instituciones con educación media</div>
-                                </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                {{ form.nit_check_digit.label(class="form-label") }}
+                                {{ form.nit_check_digit(class="form-control", placeholder="1", maxlength="1") }}
                             </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3 class="section-title">
-                                <i class="fas fa-file-alt"></i> Resolución de Aprobación MEN
-                            </h3>
-
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="resolution_number" class="form-label">
-                                            Número de resolución <span class="required">*</span>
-                                        </label>
-                                        <input type="text" class="form-control" id="resolution_number" name="resolution_number" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="resolution_date" class="form-label">
-                                            Fecha de expedición <span class="required">*</span>
-                                        </label>
-                                        <input type="date" class="form-control" id="resolution_date" name="resolution_date" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="resolution_entity" class="form-label">
-                                            Entidad que expide <span class="required">*</span>
-                                        </label>
-                                        <select class="form-control" id="resolution_entity" name="resolution_entity" required>
-                                            <option value="">Seleccionar...</option>
-                                            <option value="MEN">Ministerio de Educación (MEN)</option>
-                                            <option value="SED">Secretaría de Educación Departamental</option>
-                                            <option value="SEM">Secretaría de Educación Municipal</option>
-                                            <option value="otra">Otra entidad</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary prev-tab" data-prev="basic">
-                                <i class="fas fa-arrow-left"></i> Anterior
-                            </button>
-                            <button type="button" class="btn btn-secondary next-tab" data-next="location">
-                                Siguiente <i class="fas fa-arrow-right"></i>
-                            </button>
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 3: UBICACIÓN -->
-                    <div class="tab-content" id="location-tab">
-                        <div class="form-header">
-                            <h1><i class="fas fa-map-marker-alt"></i> Ubicación</h1>
-                            <p>Información geográfica de la institución</p>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="department" class="form-label">
-                                        Departamento <span class="required">*</span>
-                                    </label>
-                                    <select class="form-control" id="department" name="department" required>
-                                        <option value="">Seleccionar...</option>
-                                        {% for dept in departments %}
-                                        <option value="{{ dept.code }}">{{ dept.name }}</option>
-                                        {% endfor %}
-                                    </select>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.icfes_code.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-graduation-cap input-icon"></i>
+                                    {{ form.icfes_code(class="form-control", placeholder="Código ICFES (opcional)") }}
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="city" class="form-label">
-                                        Municipio <span class="required">*</span>
-                                    </label>
-                                    <select class="form-control" id="city" name="city" disabled required>
-                                        <option value="">Primero seleccione un departamento</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="dane_municipality_code" class="form-label">
-                                        Código DANE del municipio <span class="required">*</span>
-                                    </label>
-                                    <input type="text" class="form-control" id="dane_municipality_code" name="dane_municipality_code" readonly required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">
-                                        Zona <span class="required">*</span>
-                                    </label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="zone" id="zone_urban" value="urbana" required>
-                                        <label class="form-check-label" for="zone_urban">Urbana</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="zone" id="zone_rural" value="rural" required>
-                                        <label class="form-check-label" for="zone_rural">Rural</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="form-group">
-                                    <label for="address" class="form-label">
-                                        Dirección exacta <span class="required">*</span>
-                                    </label>
-                                    <input type="text" class="form-control" id="address" name="address" required>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label for="neighborhood" class="form-label">
-                                        Barrio/Vereda <span class="required">*</span>
-                                    </label>
-                                    <input type="text" class="form-control" id="neighborhood" name="neighborhood" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary prev-tab" data-prev="legal">
-                                <i class="fas fa-arrow-left"></i> Anterior
-                            </button>
-                            <button type="button" class="btn btn-secondary next-tab" data-next="academic">
-                                Siguiente <i class="fas fa-arrow-right"></i>
-                            </button>
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 4: INFORMACIÓN ACADÉMICA -->
-                    <div class="tab-content" id="academic-tab">
-                        <div class="form-header">
-                            <h1><i class="fas fa-graduation-cap"></i> Información Académica</h1>
-                            <p>Características educativas de la institución</p>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">
-                                        Sector <span class="required">*</span>
-                                    </label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="sector" id="sector_official" value="oficial" required>
-                                        <label class="form-check-label" for="sector_official">Oficial</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="sector" id="sector_private" value="no_oficial" required>
-                                        <label class="form-check-label" for="sector_private">No Oficial (Privado)</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="character" class="form-label">
-                                        Carácter <span class="required">*</span>
-                                    </label>
-                                    <select class="form-control" id="character" name="character" required>
-                                        <option value="">Seleccionar...</option>
-                                        <option value="academico">Académico</option>
-                                        <option value="tecnico">Técnico</option>
-                                        <option value="normalista">Normalista</option>
-                                        <option value="artistico">Artístico</option>
-                                    </select>
+                    <!-- Resolución de Aprobación -->
+                    <h5 class="mt-4 mb-3">
+                        <i class="fas fa-stamp text-warning"></i>
+                        Resolución de Aprobación
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.resolution_number.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-file-contract input-icon"></i>
+                                    {{ form.resolution_number(class="form-control", placeholder="Ej: 001234") }}
                                 </div>
                             </div>
                         </div>
-
-                        <div class="form-group">
-                            <label class="form-label">
-                                Niveles educativos que ofrece <span class="required">*</span>
-                            </label>
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="level_preschool" name="levels[]" value="preescolar">
-                                        <label class="form-check-label" for="level_preschool">Preescolar</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="level_primary" name="levels[]" value="primaria">
-                                        <label class="form-check-label" for="level_primary">Primaria</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="level_secondary" name="levels[]" value="secundaria">
-                                        <label class="form-check-label" for="level_secondary">Secundaria</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="level_high" name="levels[]" value="media">
-                                        <label class="form-check-label" for="level_high">Media</label>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="level_technical" name="levels[]" value="tecnica">
-                                        <label class="form-check-label" for="level_technical">Técnica</label>
-                                    </div>
-                                </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.resolution_date.label(class="form-label") }}
+                                {{ form.resolution_date(class="form-control") }}
                             </div>
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">
-                                        Modalidad <span class="required">*</span>
-                                    </label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="modality" id="modality_presential" value="presencial" required>
-                                        <label class="form-check-label" for="modality_presential">Presencial</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="modality" id="modality_virtual" value="virtual" required>
-                                        <label class="form-check-label" for="modality_virtual">Virtual</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="modality" id="modality_mixed" value="mixta" required>
-                                        <label class="form-check-label" for="modality_mixed">Mixta</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">
-                                        Jornadas disponibles <span class="required">*</span>
-                                    </label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="shift_morning" name="shifts[]" value="mañana">
-                                        <label class="form-check-label" for="shift_morning">Mañana</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="shift_afternoon" name="shifts[]" value="tarde">
-                                        <label class="form-check-label" for="shift_afternoon">Tarde</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="shift_night" name="shifts[]" value="nocturna">
-                                        <label class="form-check-label" for="shift_night">Nocturna</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="shift_weekend" name="shifts[]" value="fin_de_semana">
-                                        <label class="form-check-label" for="shift_weekend">Fin de semana</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="shift_unique" name="shifts[]" value="unica">
-                                        <label class="form-check-label" for="shift_unique">Única</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="shift_complete" name="shifts[]" value="completa">
-                                        <label class="form-check-label" for="shift_complete">Completa</label>
-                                    </div>
-                                </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.resolution_entity.label(class="form-label") }}
+                                {{ form.resolution_entity(class="form-select") }}
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">
-                                        Calendario académico <span class="required">*</span>
-                                    </label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="calendar" id="calendar_a" value="A" required>
-                                        <label class="form-check-label" for="calendar_a">Calendario A</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="calendar" id="calendar_b" value="B" required>
-                                        <label class="form-check-label" for="calendar_b">Calendario B</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="calendar" id="calendar_flexible" value="flexible" required>
-                                        <label class="form-check-label" for="calendar_flexible">Flexible</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="students_capacity" class="form-label">
-                                        Capacidad máxima de estudiantes <span class="required">*</span>
-                                    </label>
-                                    <input type="number" class="form-control" id="students_capacity" name="students_capacity" min="1" required>
-                                </div>
-                            </div>
+                <!-- Step 3: Ubicación -->
+                <div class="step-content" data-step="3">
+                    <div class="step-header">
+                        <div class="step-title">
+                            <i class="fas fa-map-marker-alt text-warning"></i>
+                            Ubicación
                         </div>
-
-                        <div class="form-group">
-                            <label for="campuses_number" class="form-label">
-                                Número de sedes <span class="required">*</span>
-                            </label>
-                            <input type="number" class="form-control" id="campuses_number" name="campuses_number" min="1" value="1" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="operation_start_date" class="form-label">
-                                Fecha de inicio de operaciones <span class="required">*</span>
-                            </label>
-                            <input type="date" class="form-control" id="operation_start_date" name="operation_start_date" required>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary prev-tab" data-prev="location">
-                                <i class="fas fa-arrow-left"></i> Anterior
-                            </button>
-                            <button type="button" class="btn btn-secondary next-tab" data-next="director">
-                                Siguiente <i class="fas fa-arrow-right"></i>
-                            </button>
+                        <div class="step-description">
+                            Información geográfica y dirección de la institución
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 5: RECTOR/DIRECTOR -->
-                    <div class="tab-content" id="director-tab">
-                        <div class="form-header">
-                            <h1><i class="fas fa-user-tie"></i> Rector/Director</h1>
-                            <p>Información de la persona encargada de la institución</p>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="director_name" class="form-label">
-                                        Nombre completo <span class="required">*</span>
-                                    </label>
-                                    <input type="text" class="form-control" id="director_name" name="director_name" required>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="director_doc_type" class="form-label">
-                                        Tipo de documento <span class="required">*</span>
-                                    </label>
-                                    <select class="form-control" id="director_doc_type" name="director_doc_type" required>
-                                        <option value="">Seleccionar...</option>
-                                        <option value="CC">Cédula de Ciudadanía</option>
-                                        <option value="CE">Cédula de Extranjería</option>
-                                        <option value="PA">Pasaporte</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-group">
-                                    <label for="director_doc_number" class="form-label">
-                                        Número de documento <span class="required">*</span>
-                                    </label>
-                                    <input type="text" class="form-control" id="director_doc_number" name="director_doc_number" required>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.department.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-map input-icon"></i>
+                                    {{ form.department(class="form-select") }}
                                 </div>
                             </div>
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="director_email" class="form-label">
-                                        Email <span class="required">*</span>
-                                    </label>
-                                    <input type="email" class="form-control" id="director_email" name="director_email" required>
-                                    <div class="form-text">Aquí se enviarán las credenciales del sistema</div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.city.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-city input-icon"></i>
+                                    {{ form.city(class="form-select", disabled=true) }}
+                                </div>
+                                <div id="cityLoading" class="text-center mt-2" style="display: none;">
+                                    <div class="spinner"></div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="director_phone" class="form-label">
-                                        Teléfono <span class="required">*</span>
-                                    </label>
-                                    <input type="tel" class="form-control" id="director_phone" name="director_phone" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="director_position" class="form-label">
-                                Cargo <span class="required">*</span>
-                            </label>
-                            <input type="text" class="form-control" id="director_position" name="director_position" required>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary prev-tab" data-prev="academic">
-                                <i class="fas fa-arrow-left"></i> Anterior
-                            </button>
-                            <button type="button" class="btn btn-secondary next-tab" data-next="resources">
-                                Siguiente <i class="fas fa-arrow-right"></i>
-                            </button>
                         </div>
                     </div>
 
-                    <!-- SECCIÓN 6: RECURSOS VISUALES -->
-                    <div class="tab-content" id="resources-tab">
-                        <div class="form-header">
-                            <h1><i class="fas fa-images"></i> Recursos Visuales</h1>
-                            <p>Elementos gráficos que identifican a la institución</p>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Logo institucional</label>
-                                    <div class="file-upload" id="logo-upload">
-                                        <input type="file" id="logo" name="logo" accept="image/png, image/jpeg">
-                                        <i class="fas fa-upload fa-2x mb-2"></i>
-                                        <p>Arrastra o haz clic para subir el logo</p>
-                                        <small class="text-muted">Formatos: JPG, PNG (máx. 2MB)</small>
-                                    </div>
-                                    <div class="file-preview" id="logo-preview">
-                                        <img src="" alt="Vista previa del logo" id="logo-preview-img">
-                                        <button type="button" class="btn btn-sm btn-danger mt-2" id="remove-logo">
-                                            <i class="fas fa-trash"></i> Eliminar
-                                        </button>
-                                    </div>
-                                </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.dane_municipality_code.label(class="form-label") }}
+                                {{ form.dane_municipality_code(class="form-control", readonly=true, placeholder="Se completará automáticamente") }}
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Escudo institucional</label>
-                                    <div class="file-upload" id="shield-upload">
-                                        <input type="file" id="shield" name="shield" accept="image/png, image/jpeg">
-                                        <i class="fas fa-upload fa-2x mb-2"></i>
-                                        <p>Arrastra o haz clic para subir el escudo</p>
-                                        <small class="text-muted">Formatos: JPG, PNG (máx. 2MB)</small>
-                                    </div>
-                                    <div class="file-preview" id="shield-preview">
-                                        <img src="" alt="Vista previa del escudo" id="shield-preview-img">
-                                        <button type="button" class="btn btn-sm btn-danger mt-2" id="remove-shield">
-                                            <i class="fas fa-trash"></i> Eliminar
-                                        </button>
-                                    </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Zona</label>
+                                <div class="mt-2">
+                                    {% for subfield in form.zone %}
+                                        <div class="radio-item d-inline-block me-3">
+                                            {{ subfield(class="form-check-input") }}
+                                            {{ subfield.label(class="form-check-label ms-1") }}
+                                        </div>
+                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- SELECCIÓN DE PLAN -->
-                        <div class="form-section">
-                            <h3 class="section-title">
-                                <i class="fas fa-star"></i> Selecciona tu Plan EduControl
-                            </h3>
-                            <p class="text-muted mb-4">Elige el plan que mejor se adapte a las necesidades de tu institución</p>
+                <!-- Step 4: Información Académica -->
+                <div class="step-content" data-step="4">
+                    <div class="step-header">
+                        <div class="step-title">
+                            <i class="fas fa-graduation-cap text-info"></i>
+                            Información Académica
+                        </div>
+                        <div class="step-description">
+                            Configuración educativa y características académicas
+                        </div>
+                    </div>
 
-                            <div class="plans-container">
-                                <!-- Plan Básico -->
-                                <div class="plan-card" data-plan="basico" data-price="400000">
-                                    <input type="radio" id="plan_basico" name="plan" value="basico" class="plan-radio">
-                                    <label for="plan_basico" class="w-100 h-100 cursor-pointer">
-                                        <div class="plan-header">
-                                            <div class="plan-name">🥉 Plan Básico</div>
-                                            <div class="plan-price">$400.000</div>
-                                            <div class="plan-price-period">COP/mes</div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Sector</label>
+                                <div class="mt-2">
+                                    {% for subfield in form.sector %}
+                                        <div class="radio-item mb-2">
+                                            {{ subfield(class="form-check-input") }}
+                                            {{ subfield.label(class="form-check-label ms-2") }}
                                         </div>
-                                        <ul class="plan-features">
-                                            <li><i class="fas fa-check"></i> Gestión de Estudiantes</li>
-                                            <li><i class="fas fa-check"></i> Gestión de Docentes</li>
-                                            <li><i class="fas fa-check"></i> Horarios de Clases</li>
-                                            <li><i class="fas fa-check"></i> Control de Asistencia</li>
-                                            <li><i class="fas fa-check"></i> Comunicación Básica</li>
-                                            <li><i class="fas fa-check"></i> Soporte Email</li>
-                                        </ul>
-                                        <div class="plan-ideal">
-                                            Ideal para: Colegios pequeños (1-100 estudiantes)
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <!-- Plan Estándar -->
-                                <div class="plan-card" data-plan="estandar" data-price="600000">
-                                    <div class="plan-badge">Más Popular</div>
-                                    <input type="radio" id="plan_estandar" name="plan" value="estandar" class="plan-radio" checked>
-                                    <label for="plan_estandar" class="w-100 h-100 cursor-pointer">
-                                        <div class="plan-header">
-                                            <div class="plan-name">🥈 Plan Estándar</div>
-                                            <div class="plan-price">$600.000</div>
-                                            <div class="plan-price-period">COP/mes</div>
-                                        </div>
-                                        <ul class="plan-features">
-                                            <li><i class="fas fa-check"></i> Todo del Plan Básico +</li>
-                                            <li><i class="fas fa-check"></i> Sistema de Calificaciones</li>
-                                            <li><i class="fas fa-check"></i> Boletines Digitales</li>
-                                            <li><i class="fas fa-check"></i> Reportes Académicos</li>
-                                            <li><i class="fas fa-check"></i> Comunicación con Padres</li>
-                                            <li><i class="fas fa-check"></i> Seguimiento Disciplinario</li>
-                                            <li><i class="fas fa-check"></i> Soporte Telefónico</li>
-                                        </ul>
-                                        <div class="plan-ideal">
-                                            Ideal para: Colegios medianos (101-300 estudiantes)
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <!-- Plan Premium -->
-                                <div class="plan-card" data-plan="premium" data-price="900000">
-                                    <input type="radio" id="plan_premium" name="plan" value="premium" class="plan-radio">
-                                    <label for="plan_premium" class="w-100 h-100 cursor-pointer">
-                                        <div class="plan-header">
-                                            <div class="plan-name">🥇 Plan Premium</div>
-                                            <div class="plan-price">$900.000</div>
-                                            <div class="plan-price-period">COP/mes</div>
-                                        </div>
-                                        <ul class="plan-features">
-                                            <li><i class="fas fa-check"></i> Todo del Plan Estándar +</li>
-                                            <li><i class="fas fa-check"></i> Portal para Padres</li>
-                                            <li><i class="fas fa-check"></i> Aplicación Móvil</li>
-                                            <li><i class="fas fa-check"></i> Gestión Financiera</li>
-                                            <li><i class="fas fa-check"></i> Inventario y Activos</li>
-                                            <li><i class="fas fa-check"></i> Integración con Plataformas</li>
-                                            <li><i class="fas fa-check"></i> Soporte Prioritario 24/7</li>
-                                        </ul>
-                                        <div class="plan-ideal">
-                                            Ideal para: Colegios grandes (301+ estudiantes)
-                                        </div>
-                                    </label>
+                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.character.label(class="form-label") }}
+                                {{ form.character(class="form-select") }}
+                            </div>
+                        </div>
+                    </div>
 
-                        <div class="form-group">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="terms_acceptance" name="terms_acceptance" required>
-                                <label class="form-check-label" for="terms_acceptance">
-                                    Acepto los <a href="#" target="_blank">Términos y Condiciones</a> y la <a href="#" target="_blank">Política de Privacidad</a> de EduControl <span class="required">*</span>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-layer-group"></i>
+                            Niveles Educativos
+                        </label>
+                        <div class="checkbox-grid">
+                            {% for subfield in form.levels %}
+                                <div class="checkbox-item">
+                                    {{ subfield(class="form-check-input") }}
+                                    {{ subfield.label(class="form-check-label ms-2") }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-clock"></i>
+                            Jornadas Disponibles
+                        </label>
+                        <div class="checkbox-grid">
+                            {% for subfield in form.shifts %}
+                                <div class="checkbox-item">
+                                    {{ subfield(class="form-check-input") }}
+                                    {{ subfield.label(class="form-check-label ms-2") }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Modalidad</label>
+                                <div class="mt-2">
+                                    {% for subfield in form.modality %}
+                                        <div class="radio-item mb-2">
+                                            {{ subfield(class="form-check-input") }}
+                                            {{ subfield.label(class="form-check-label ms-2") }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Calendario Académico</label>
+                                <div class="mt-2">
+                                    {% for subfield in form.calendar %}
+                                        <div class="radio-item mb-2">
+                                            {{ subfield(class="form-check-input") }}
+                                            {{ subfield.label(class="form-check-label ms-2") }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.students_capacity.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-users input-icon"></i>
+                                    {{ form.students_capacity(class="form-control", placeholder="1000") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.campuses_number.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-building input-icon"></i>
+                                    {{ form.campuses_number(class="form-control", value="1") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.operation_start_date.label(class="form-label") }}
+                                {{ form.operation_start_date(class="form-control") }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Director/Rector -->
+                <div class="step-content" data-step="5">
+                    <div class="step-header">
+                        <div class="step-title">
+                            <i class="fas fa-user-tie text-purple"></i>
+                            Director/Rector
+                        </div>
+                        <div class="step-description">
+                            Información del representante legal y director de la institución
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.director_name.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-user input-icon"></i>
+                                    {{ form.director_name(class="form-control", placeholder="Nombres y apellidos completos") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.director_position.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-briefcase input-icon"></i>
+                                    {{ form.director_position(class="form-control", placeholder="Ej: Rector, Director") }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.director_doc_type.label(class="form-label") }}
+                                {{ form.director_doc_type(class="form-select") }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.director_doc_number.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-id-card input-icon"></i>
+                                    {{ form.director_doc_number(class="form-control", placeholder="1234567890") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                {{ form.director_phone.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-phone input-icon"></i>
+                                    {{ form.director_phone(class="form-control", placeholder="+57 300 123 4567") }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                {{ form.director_email.label(class="form-label") }}
+                                <div class="input-group">
+                                    <i class="fas fa-envelope input-icon"></i>
+                                    {{ form.director_email(class="form-control", placeholder="director@institucion.edu.co") }}
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i>
+                                    Este será el email del administrador principal del sistema
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 6: Recursos Visuales -->
+                <div class="step-content" data-step="6">
+                    <div class="step-header">
+                        <div class="step-title">
+                            <i class="fas fa-image text-secondary"></i>
+                            Recursos Visuales
+                        </div>
+                        <div class="step-description">
+                            Suba el logo y escudo de su institución (opcional)
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-image"></i>
+                                    Logo Institucional
                                 </label>
+                                <div class="file-upload-area" onclick="document.getElementById('logo').click()">
+                                    {{ form.logo(style="display: none", id="logo") }}
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <p class="mb-2">Haga clic para seleccionar el logo</p>
+                                    <small class="text-muted">PNG, JPG hasta 5MB</small>
+                                    <img id="logoPreview" class="file-preview" alt="Preview del logo">
+                                </div>
                             </div>
                         </div>
-
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary prev-tab" data-prev="director">
-                                <i class="fas fa-arrow-left"></i> Anterior
-                            </button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Guardar Institución
-                            </button>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-shield-alt"></i>
+                                    Escudo Institucional
+                                </label>
+                                <div class="file-upload-area" onclick="document.getElementById('shield').click()">
+                                    {{ form.shield(style="display: none", id="shield") }}
+                                    <i class="fas fa-shield-alt fa-3x text-muted mb-3"></i>
+                                    <p class="mb-2">Haga clic para seleccionar el escudo</p>
+                                    <small class="text-muted">PNG, JPG hasta 5MB</small>
+                                    <img id="shieldPreview" class="file-preview" alt="Preview del escudo">
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </form>
+
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-lightbulb"></i>
+                        <strong>Consejo:</strong> Para mejores resultados, use imágenes cuadradas con fondo transparente (PNG) y resolución mínima de 512x512 píxeles.
+                    </div>
+                </div>
+
+                <!-- Step 7: Plan y Confirmación -->
+                <div class="step-content" data-step="7">
+                    <div class="step-header">
+                        <div class="step-title">
+                            <i class="fas fa-credit-card text-success"></i>
+                            Plan de Suscripción
+                        </div>
+                        <div class="step-description">
+                            Seleccione el plan que mejor se adapte a sus necesidades
+                        </div>
+                    </div>
+
+                    <!-- Hidden radio buttons for the form -->
+                    <div style="display: none;">
+                        {% for subfield in form.plan %}
+                            {{ subfield }}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Visual plan cards -->
+                    <div class="plan-grid">
+                        <div class="plan-card" data-plan="basico" onclick="selectPlanCard('basico')">
+                            <i class="fas fa-rocket plan-icon text-primary"></i>
+                            <h4>Plan Básico</h4>
+                            <div class="plan-price">$400.000</div>
+                            <p class="text-muted">COP/mes</p>
+                            <ul class="plan-features">
+                                <li><i class="fas fa-check text-success"></i> Gestión básica de estudiantes</li>
+                                <li><i class="fas fa-check text-success"></i> Hasta 500 estudiantes</li>
+                                <li><i class="fas fa-check text-success"></i> Reportes básicos</li>
+                                <li><i class="fas fa-check text-success"></i> Soporte por email</li>
+                                <li><i class="fas fa-check text-success"></i> 1 administrador</li>
+                            </ul>
+                        </div>
+
+                        <div class="plan-card" data-plan="estandar" onclick="selectPlanCard('estandar')">
+                            <i class="fas fa-star plan-icon text-warning"></i>
+                            <h4>Plan Estándar</h4>
+                            <div class="plan-price">$600.000</div>
+                            <p class="text-muted">COP/mes</p>
+                            <div class="badge bg-warning text-dark mb-3">Recomendado</div>
+                            <ul class="plan-features">
+                                <li><i class="fas fa-check text-success"></i> Gestión completa</li>
+                                <li><i class="fas fa-check text-success"></i> Hasta 1500 estudiantes</li>
+                                <li><i class="fas fa-check text-success"></i> Reportes avanzados</li>
+                                <li><i class="fas fa-check text-success"></i> Soporte prioritario</li>
+                                <li><i class="fas fa-check text-success"></i> 5 administradores</li>
+                                <li><i class="fas fa-check text-success"></i> Backup automático</li>
+                            </ul>
+                        </div>
+
+                        <div class="plan-card" data-plan="premium" onclick="selectPlanCard('premium')">
+                            <i class="fas fa-crown plan-icon text-warning"></i>
+                            <h4>Plan Premium</h4>
+                            <div class="plan-price">$900.000</div>
+                            <p class="text-muted">COP/mes</p>
+                            <ul class="plan-features">
+                                <li><i class="fas fa-check text-success"></i> Sin límites de estudiantes</li>
+                                <li><i class="fas fa-check text-success"></i> Soporte 24/7</li>
+                                <li><i class="fas fa-check text-success"></i> Personalización completa</li>
+                                <li><i class="fas fa-check text-success"></i> Administradores ilimitados</li>
+                                <li><i class="fas fa-check text-success"></i> API integración</li>
+                                <li><i class="fas fa-check text-success"></i> Consultoría incluida</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Términos y condiciones -->
+                    <div class="mt-5">
+                        <div class="checkbox-item">
+                            {{ form.terms_acceptance(class="form-check-input") }}
+                            {{ form.terms_acceptance.label(class="form-check-label ms-2") }}
+                            <a href="#" class="ms-2 text-decoration-none" data-bs-toggle="modal" data-bs-target="#termsModal">
+                                <i class="fas fa-external-link-alt"></i> Leer términos completos
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Resumen Final -->
+                    <div class="mt-5 p-4 bg-light rounded-3">
+                        <h5><i class="fas fa-clipboard-list"></i> Resumen de la Institución</h5>
+                        <div id="finalSummary" class="mt-3">
+                            <!-- Se llenará dinámicamente con JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Step -->
+                <div class="step-content" data-step="success" style="display: none;">
+                    <div class="success-animation">
+                        <i class="fas fa-check-circle success-icon"></i>
+                        <h2>¡Institución Creada Exitosamente!</h2>
+                        <p class="lead">Su institución ha sido registrada en EduControl</p>
+                        
+                        <div class="mt-4 p-4 bg-light rounded-3 text-start">
+                            <h5>📧 Próximos Pasos:</h5>
+                            <ul class="list-unstyled mt-3">
+                                <li class="mb-2">✅ Se han enviado las credenciales al email del director</li>
+                                <li class="mb-2">✅ El administrador recibirá un enlace de configuración inicial</li>
+                                <li class="mb-2">✅ El sistema estará disponible en 24-48 horas</li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-4">
+                            <a href="{{ url_for('superadmin.institutions') }}" class="btn btn-primary btn-lg me-3">
+                                <i class="fas fa-list"></i> Ver Instituciones
+                            </a>
+                            <a href="{{ url_for('superadmin.dashboard') }}" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="wizard-navigation">
+                <button type="button" id="prevBtn" class="btn btn-wizard btn-previous" style="display: none;">
+                    <i class="fas fa-arrow-left"></i> Anterior
+                </button>
+                
+                <div class="step-info">
+                    <span id="stepCounter">Paso 1 de 7</span>
+                </div>
+                
+                <button type="button" id="nextBtn" class="btn btn-wizard btn-next">
+                    Siguiente <i class="fas fa-arrow-right"></i>
+                </button>
+                
+                <button type="submit" id="submitBtn" class="btn btn-wizard btn-submit" style="display: none;">
+                    <i class="fas fa-rocket"></i> Crear Institución
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de Términos -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-contract"></i>
+                    Términos y Condiciones de EduControl
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Uso del Servicio</h6>
+                <p>EduControl es una plataforma SaaS de gestión educativa que permite administrar instituciones educativas de manera integral...</p>
+                
+                <h6>2. Responsabilidades de la Institución</h6>
+                <p>La institución se compromete a mantener actualizada la información, proteger las credenciales de acceso y usar el sistema conforme a las leyes educativas colombianas...</p>
+                
+                <h6>3. Protección de Datos</h6>
+                <p>Todos los datos están protegidos según la Ley 1581 de 2012 de protección de datos personales y el RGPD...</p>
+                
+                <h6>4. Facturación y Pagos</h6>
+                <p>Los pagos se realizan mensualmente según el plan seleccionado. La institución puede cambiar de plan en cualquier momento...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="acceptTerms()">
+                    <i class="fas fa-check"></i> Acepto los Términos
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Confetti Canvas -->
+<canvas id="confetti" class="confetti"></canvas>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-$(document).ready(function() {
-    // Variables para el progreso
-    const totalTabs = 6;
-    let currentTab = 1;
-    
-    // Actualizar progreso
-    function updateProgress() {
-        const progress = Math.round((currentTab / totalTabs) * 100);
-        $('#progress-fill').css('width', progress + '%');
-        $('#progress-text').text(progress + '% completado');
+// Function to select plan cards
+function selectPlanCard(planValue) {
+    // Remove previous selection
+    document.querySelectorAll('.plan-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+
+    // Select new plan card
+    const selectedCard = document.querySelector(`[data-plan="${planValue}"]`);
+    if (selectedCard) {
+        selectedCard.classList.add('selected');
     }
-    
-    // Manejo de pestañas
-    $('.tab-btn').click(function() {
-        const tabId = $(this).data('tab');
-        const tabIndex = $('.tab-btn').index(this) + 1;
-        
-        $('.tab-btn').removeClass('active');
-        $(this).addClass('active');
-        
-        $('.tab-content').removeClass('active');
-        $('#' + tabId + '-tab').addClass('active');
-        
-        currentTab = tabIndex;
-        updateProgress();
+
+    // Check the corresponding radio button
+    const radioButtons = document.querySelectorAll('input[name="plan"]');
+    radioButtons.forEach(radio => {
+        if (radio.value === planValue) {
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change', { bubbles: true }));
+        }
     });
-    
-    // Botones siguiente/anterior
-    $('.next-tab').click(function() {
-        const nextTab = $(this).data('next');
-        const nextBtn = $('.tab-btn[data-tab="' + nextTab + '"]');
-        nextBtn.click();
-    });
-    
-    $('.prev-tab').click(function() {
-        const prevTab = $(this).data('prev');
-        const prevBtn = $('.tab-btn[data-tab="' + prevTab + '"]');
-        prevBtn.click();
-    });
-    
-    // Manejo de carga de archivos
-    function handleFileUpload(uploadId, previewId, previewImgId, removeBtnId) {
-        $('#' + uploadId).click(function() {
-            $('#' + uploadId + ' input').click();
-        });
-        
-        $('#' + uploadId + ' input').change(function(e) {
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#' + previewImgId).attr('src', e.target.result);
-                    $('#' + previewId).show();
-                    $('#' + uploadId).hide();
-                }
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-        
-        $('#' + removeBtnId).click(function() {
-            $('#' + uploadId + ' input').val('');
-            $('#' + previewId).hide();
-            $('#' + uploadId).show();
-        });
+}
+
+// Helper function for terms acceptance
+function acceptTerms() {
+    const termsCheckbox = document.getElementById('terms_acceptance');
+    if (termsCheckbox) {
+        termsCheckbox.checked = true;
+        termsCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
     }
-    
-    handleFileUpload('logo-upload', 'logo-preview', 'logo-preview-img', 'remove-logo');
-    handleFileUpload('shield-upload', 'shield-preview', 'shield-preview-img', 'remove-shield');
-    
-    // Sugerir slug basado en el nombre
-    $('#suggest-slug').click(function(e) {
-        e.preventDefault();
-        const name = $('#name').val();
-        if (name) {
-            const slug = name.toLowerCase()
-                .replace(/[^a-z0-9 -]/g, '') // quita caracteres inválidos
-                .replace(/\s+/g, '-') // reemplaza espacios con guiones
-                .replace(/-+/g, '-') // reemplaza múltiples guiones con uno solo
-                .substring(0, 30); // limita la longitud
-            $('#slug').val(slug);
-        }
-    });
-    
-    // Verificar disponibilidad del slug
-    $('#check-slug').click(function(e) {
-        e.preventDefault();
-        const slug = $('#slug').val();
-        if (slug) {
-            // Aquí iría una llamada AJAX para verificar disponibilidad
-            // Simulamos una respuesta positiva después de 1 segundo
-            setTimeout(function() {
-                $('#slug-validation-badge').show().addClass('badge-valid').removeClass('badge-invalid');
-                $('#slug-validation-text').text('Disponible');
-            }, 1000);
-        }
-    });
-    
-    // Manejo de departamentos y municipios
-    $('#department').change(function() {
-        const deptCode = $(this).val();
-        if (deptCode) {
-            // Habilitar select de municipios
-            $('#city').prop('disabled', false);
-            
-            // Aquí iría una llamada AJAX para cargar los municipios
-            // Simulamos una respuesta con algunos municipios
-            setTimeout(function() {
-                $('#city').html(`
-                    <option value="">Seleccionar...</option>
-                    <option value="5001">Medellín</option>
-                    <option value="5002">Abejorral</option>
-                    <option value="5004">Abriaquí</option>
-                    <option value="5021">Alejandría</option>
-                `);
-            }, 500);
-        } else {
-            $('#city').prop('disabled', true).html('<option value="">Primero seleccione un departamento</option>');
-            $('#dane_municipality_code').val('');
-        }
-    });
-    
-    // Actualizar código DANE del municipio
-    $('#city').change(function() {
-        const cityCode = $(this).val();
-        if (cityCode) {
-            $('#dane_municipality_code').val(cityCode);
-        } else {
-            $('#dane_municipality_code').val('');
-        }
-    });
-    
-    // Inicializar progreso
-    updateProgress();
-});
+}
 </script>
+
+<!-- Include the wizard JavaScript -->
+<script src="{{ url_for('static', filename='js/institution_wizard.js') }}"></script>
 {% endblock %}

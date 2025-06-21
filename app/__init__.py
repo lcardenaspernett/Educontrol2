@@ -1,7 +1,7 @@
+# app/__init__.py (ACTUALIZADO para incluir API)
 """
 Inicialización de la aplicación Flask EduControl
 """
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -23,11 +23,11 @@ login_manager.login_message_category = 'info'
 def create_app(config_name='default'):
     """Factory para crear la aplicación Flask"""
     # AQUÍ ESTÁ LA CORRECCIÓN - Especificar rutas de archivos estáticos
-    app = Flask(__name__, 
+    app = Flask(__name__,
                 static_folder='static',           # Carpeta de archivos estáticos
                 static_url_path='/static',        # URL base para archivos estáticos
                 template_folder='templates')      # Carpeta de templates
-    
+
     app.config.from_object(config[config_name])
 
     # Inicializar extensiones con la app
@@ -37,16 +37,18 @@ def create_app(config_name='default'):
     bootstrap.init_app(app)
 
     # Importar modelos (necesario para las migraciones)
-    from app.models import user, institution
+    from app.models import user, institution, course, audit_log
 
     # Registrar blueprints
     from app.routes.main import main_bp
     from app.routes.auth import auth_bp
     from app.routes.superadmin import superadmin_bp
+    from app.routes.api import api_bp  # ← NUEVO: API para municipios
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(superadmin_bp, url_prefix='/superadmin')
+    app.register_blueprint(api_bp)  # ← NUEVO: Registrar API
 
     # User loader para Flask-Login
     @login_manager.user_loader

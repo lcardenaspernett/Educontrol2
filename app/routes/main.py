@@ -7,22 +7,13 @@ from app.auth.decorators import login_required_custom
 
 main_bp = Blueprint('main', __name__)
 
-"""
-Rutas principales de la aplicación
-"""
-from flask import Blueprint, render_template, redirect, url_for
-from flask_login import login_required, current_user
-from app.auth.decorators import login_required_custom
-
-main_bp = Blueprint('main', __name__)
-
 @main_bp.route('/')
 def index():
     """Página principal - muestra bienvenida o redirige según autenticación"""
     if current_user.is_authenticated:
         # Usuario autenticado - redirigir al dashboard apropiado
         if current_user.role == 'superadmin':
-            return redirect(url_for('main.dashboard'))  # Por ahora usar dashboard general
+            return redirect(url_for('superadmin.dashboard'))  # Dashboard del superadmin
         elif current_user.role == 'admin':
             return redirect(url_for('main.dashboard'))
         elif current_user.role == 'teacher':
